@@ -95,6 +95,9 @@ if __name__ == '__main__':
     train_tar = download_data(TRAIN_URL, TRAIN_CHECKSUM, download_dir)
     val_tar = download_data(VAL_URL, VAL_CHECKSUM, download_dir)
 
+    print('Cleaning old files...')
+    clean_data_dir(data_dir)
+
     extract_tar(annotations_tar, data_dir)
     extract_tar(train_tar, data_dir)
     extract_tar(val_tar, data_dir)
