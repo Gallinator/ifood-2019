@@ -101,10 +101,12 @@ if __name__ == '__main__':
     extract_tar(annotations_tar, data_dir)
     extract_tar(train_tar, data_dir)
     extract_tar(val_tar, data_dir)
-    os.remove(os.path.join(data_dir, 'test_info.csv'))
 
     if args.remove_src:
         print('Removing tar files...')
         os.remove(annotations_tar)
         os.remove(train_tar)
         os.remove(val_tar)
+
+    os.replace(os.path.join(data_dir, 'val_info.csv'), os.path.join(data_dir, 'test_info.csv'))
+    os.rename(os.path.join(data_dir, 'val_set'), os.path.join(data_dir, 'test_set'))
