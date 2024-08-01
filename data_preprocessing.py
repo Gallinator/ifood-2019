@@ -46,8 +46,8 @@ def download_data(url: str, checksum: str, dest_dir: str) -> str:
                 for chunk in res.iter_content(chunk_size=8192):
                     progress.update(len(chunk))
                     file.write(chunk)
-        check_md5(file_path, checksum)
-        return file_path
+    check_md5(file_path, checksum)
+    return file_path
 
 
 def extract_tar(file_path: str, dest_path: None | str):
