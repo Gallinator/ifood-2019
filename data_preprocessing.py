@@ -1,5 +1,6 @@
 import argparse
 import os
+import shutil
 import tarfile
 
 import requests
@@ -57,6 +58,19 @@ def extract_tar(file_path: str, dest_path: None | str):
     print(f'Extracting {os.path.basename(file_path)}...')
     with tarfile.open(file_path) as src:
         src.extractall(dest_path)
+
+
+def clean_data_dir(data_path: str):
+    """
+    Removes all files but the source tars
+    :param data_path: data directory
+    """
+    for f in os.listdir(data_path):
+        f_path = os.path.join(data_path, f)
+        if os.path.isdir(f_path):
+            shutil.rmtree(f_path)
+        elif f not in ['annot.tar', 'train.tar', 'val.tar']:
+            os.remove(f_path)
 
 
 def build_arg_parser():
