@@ -3,6 +3,8 @@ import os
 import shutil
 import tarfile
 
+import numpy as np
+import pandas as pd
 import requests
 import tqdm
 from simple_file_checksum import get_checksum
@@ -73,6 +75,36 @@ def clean_data_dir(data_path: str):
             os.remove(f_path)
 
 
+def create_val_set(data_dir: str, val_size: float):
+    """
+    Creates the validation set from the training set. Images are moved from the training to the validation directory.
+    To manage the train and evaluation info and images at the same time, a set of indices for each split is created randomly and used for all operations.
+    :param val_size: the size of the validation set in [0,1]
+    :param data_dir: directory containing the training data
+    """
+    train_info = pd.read_csv(os.path.join(data_dir, 'train_info.csv'), sep=',', names=['Image', 'Class'])
+    data_size = len(train_info)
+    rand_idx = np.random.permutation(range(data_size))
+    num_train = int(data_size * (1 - val_size))
+    train_idx = rand_idx[:num_train]
+    val_idx = rand_idx[num_train:]
+
+    val_info = train_info.iloc[val_idx, :]
+    train_info = train_info.iloc[train_idx, :]
+    train_info = train_info.reset_index(drop=True)
+
+    val_info.to_csv(os.path.join(data_dir, 'val_info.csv'), sep=',', index=False, header=False)
+    train_info.to_csv(os.path.join(data_dir, 'train_info.csv'), sep=',', index=False, header=False)
+
+    train_dir = os.path.join(data_dir, 'train_set')
+    val_dir = os.path.join(data_dir, 'val_set')
+    os.makedirs(val_dir, exist_ok=True)
+
+    for _, row in val_info.iterrows():
+        image_name = row['Image']
+        shutil.move(os.path.join(train_dir, image_name), os.path.join(val_dir, image_name))
+
+
 def build_arg_parser():
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument('--data-dir', '-d', type=str, default='data',
@@ -110,6 +142,8 @@ def main():
 
     os.replace(os.path.join(data_dir, 'val_info.csv'), os.path.join(data_dir, 'test_info.csv'))
     os.rename(os.path.join(data_dir, 'val_set'), os.path.join(data_dir, 'test_set'))
+
+    create_val_set(data_dir, 1 - args.train_size)
 
 
 if __name__ == '__main__':
