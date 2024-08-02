@@ -86,7 +86,7 @@ def build_arg_parser():
     return arg_parser
 
 
-if __name__ == '__main__':
+def main():
     args = build_arg_parser().parse_args()
     download_dir = args.download_dir
     data_dir = args.data_dir
@@ -110,3 +110,7 @@ if __name__ == '__main__':
 
     os.replace(os.path.join(data_dir, 'val_info.csv'), os.path.join(data_dir, 'test_info.csv'))
     os.rename(os.path.join(data_dir, 'val_set'), os.path.join(data_dir, 'test_set'))
+
+
+if __name__ == '__main__':
+    main()
