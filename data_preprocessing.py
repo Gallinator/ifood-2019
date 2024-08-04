@@ -128,6 +128,22 @@ def build_arg_parser():
     return arg_parser
 
 
+def create_split_directory_structure(data_dir: str, split: str):
+    split_dir = os.path.join(data_dir, f'{split}_set')
+    split_info = pd.read_csv(os.path.join(data_dir, f'{split}_info.csv'), sep=',', names=['Image', 'Class'])
+    classes_dict = parse_classes_dict(data_dir, True)
+
+    # Create directories
+    for c in split_info['Class'].unique():
+        os.mkdir(os.path.join(split_dir, str(classes_dict[c])))
+
+    # Move images
+    for _, row in tqdm.tqdm(split_info.iterrows(), f'Creating {split}_set structure', total=len(split_info)):
+        class_name = classes_dict[row['Class']]
+        dest_dir = os.path.join(split_dir, str(class_name))
+        shutil.move(os.path.join(split_dir, row['Image']), os.path.join(dest_dir, row['Image']))
+
+
 def main():
     args = build_arg_parser().parse_args()
     download_dir = args.download_dir
@@ -154,6 +170,10 @@ def main():
     os.rename(os.path.join(data_dir, 'val_set'), os.path.join(data_dir, 'test_set'))
 
     create_val_set(data_dir, 1 - args.train_size)
+
+    create_split_directory_structure(data_dir, 'train')
+    create_split_directory_structure(data_dir, 'val')
+    create_split_directory_structure(data_dir, 'test')
 
 
 if __name__ == '__main__':
