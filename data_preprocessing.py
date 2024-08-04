@@ -1,4 +1,5 @@
 import argparse
+import csv
 import os
 import shutil
 import tarfile
@@ -15,6 +16,15 @@ VAL_URL = 'https://food-x.s3.amazonaws.com/val.tar'
 VAL_CHECKSUM = 'fa9a4c1eb929835a0fe68734f4868d3b'
 ANNOTATIONS_URL = 'https://food-x.s3.amazonaws.com/annot.tar'
 ANNOTATIONS_CHECKSUM = '0c632c543ceed0e70f0eb2db58eda3ab'
+
+
+def parse_classes_dict(directory: str, int_to_label=False) -> dict[str, int] | dict[int, str]:
+    with open(os.path.join(directory, 'class_list.txt')) as f:
+        reader = csv.reader(f, delimiter=' ')
+        if int_to_label:
+            return {int(row[0]): row[1] for row in reader}
+        else:
+            return {row[1]: int(row[0]) for row in reader}
 
 
 def check_md5(file_path: str, checksum: str):
