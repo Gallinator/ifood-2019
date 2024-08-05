@@ -3,7 +3,7 @@ from typing import Optional, Callable
 from torchvision.datasets import ImageFolder
 
 
-class FoodDataLoader(ImageFolder):
+class FoodDataset(ImageFolder):
     """
     Simple ImageFolder dataloader which provides an additional dict to convert from class index to label
     """
