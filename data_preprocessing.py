@@ -97,16 +97,16 @@ def generate_tiles_task(path, files, grid_size: int, classes_dirs: list, permset
             grid.save(os.path.join(classes_dirs[i], f))
 
 
-def create_ssl_set(src_dir: str, dest_dir: str, permset, grid_size: int):
+def create_ssl_set(src_dir: str, permset, grid_size: int):
     """
     Generates the unnormalized tiles for the Jigsaw pretext task from the source dataset.
     The generated data is stored a tensors for convenience.
     :param src_dir: path of the original data
-    :param dest_dir: directory to save the tiles to
     :param permset: permutations
     :param grid_size: size of the grid edge. Each permutation will have length grid_size**2
     """
     # Create dirs
+    dest_dir = os.path.join(os.path.split(src_dir)[0], 'ssl', os.path.basename(src_dir))
     os.makedirs(dest_dir, exist_ok=True)
     classes_dirs = []
     for i, p in enumerate(permset):
