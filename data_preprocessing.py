@@ -77,9 +77,10 @@ def cut_tiles(grid_size: int, img: torch.Tensor) -> torch.Tensor:
     return tiles
 
 
-def generate_tiles_task(path, files, grid_size: int, classes_dirs: list):
+def generate_tiles_task(path, files, grid_size: int, classes_dirs: list, permset):
     """
     This function is used by multiprocessing to parallelize the tile generation task.
+    :param permset: the permutation set
     :param path: passed from os.walk()
     :param files: passed from os.walk()
     :param grid_size: size of the tiles grid
@@ -113,7 +114,7 @@ def create_ssl_set(src_dir: str, dest_dir: str, permset, grid_size: int):
         os.makedirs(classes_dirs[-1], exist_ok=True)
 
     with multiprocessing.Pool() as pool:
-        args = [(pth, files, grid_size, classes_dirs) for pth, folders, files in os.walk(src_dir)]
+        args = [(pth, files, grid_size, classes_dirs, permset) for pth, folders, files in os.walk(src_dir)]
         pool.starmap(generate_tiles_task, args)
 
 
