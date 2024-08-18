@@ -68,6 +68,7 @@ class DecoderBlock(nn.Module):
 class FoodCNN(L.LightningModule):
     def __init__(self, n_classes, conv_net: ConvNet | None = None):
         super().__init__()
+        self.save_hyperparameters()
         self.n_classes = n_classes
         self.conv_net = conv_net if conv_net else ConvNet()
         self.linear = nn.Sequential(
