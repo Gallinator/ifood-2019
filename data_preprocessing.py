@@ -281,7 +281,7 @@ def main():
     if args.generate_ssl:
         perms = get_max_permutation_set(9, args.ssl_perms)
         create_ssl_set(os.path.join(data_dir, 'train_set'), perms, 3)
-        create_ssl_set(os.path.join(data_dir, 'test_set'), perms, 3)
+        create_ssl_set(os.path.join(data_dir, 'val_set'), perms, 3)
 
 
 if __name__ == '__main__':
