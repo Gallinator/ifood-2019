@@ -177,7 +177,7 @@ def clean_data_dir(data_path: str):
     Removes all files but the source tars
     :param data_path: data directory
     """
-    for f in os.listdir(data_path):
+    for f in tqdm.tqdm(os.listdir(data_path), desc='Cleaning old files'):
         f_path = os.path.join(data_path, f)
         if os.path.isdir(f_path):
             shutil.rmtree(f_path)
@@ -257,7 +257,6 @@ def main():
     train_tar = download_data(TRAIN_URL, TRAIN_CHECKSUM, download_dir)
     val_tar = download_data(VAL_URL, VAL_CHECKSUM, download_dir)
 
-    print('Cleaning old files...')
     clean_data_dir(data_dir)
 
     extract_tar(annotations_tar, data_dir)
