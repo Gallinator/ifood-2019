@@ -14,6 +14,8 @@ import tqdm
 from scipy.spatial.distance import hamming
 from simple_file_checksum import get_checksum
 from sklearn.metrics import pairwise_distances
+from torchvision.transforms import v2
+from torchvision.transforms.v2.functional import to_pil_image
 
 TRAIN_URL = 'https://food-x.s3.amazonaws.com/train.tar'
 TRAIN_CHECKSUM = '8e56440e365ee852dcb0953a9307e27f'
@@ -21,6 +23,19 @@ VAL_URL = 'https://food-x.s3.amazonaws.com/val.tar'
 VAL_CHECKSUM = 'fa9a4c1eb929835a0fe68734f4868d3b'
 ANNOTATIONS_URL = 'https://food-x.s3.amazonaws.com/annot.tar'
 ANNOTATIONS_CHECKSUM = '0c632c543ceed0e70f0eb2db58eda3ab'
+
+NORM_MEAN = [0.485, 0.456, 0.406]
+NORM_STD = [0.229, 0.224, 0.225]
+DATA_TRANSFORM = v2.Compose([v2.Resize(256),
+                             v2.CenterCrop(256),
+                             v2.ToTensor(),
+                             v2.Normalize(NORM_MEAN, NORM_STD)])
+SSL_DATA_TRANSFORM = v2.Compose([v2.Resize(256),
+                                 v2.CenterCrop(225),
+                                 v2.ToTensor()])
+SSL_PER_TILE_TRANSFORM = v2.Compose([v2.RandomCrop(64),
+                                     v2.Normalize(NORM_MEAN, NORM_STD)])
+
 
 def get_max_permutation_set(length: int, set_size: int) -> list[tuple]:
     """
