@@ -7,6 +7,7 @@ import tarfile
 import numpy as np
 import pandas as pd
 import requests
+import torch
 import tqdm
 from simple_file_checksum import get_checksum
 
@@ -17,6 +18,22 @@ VAL_CHECKSUM = 'fa9a4c1eb929835a0fe68734f4868d3b'
 ANNOTATIONS_URL = 'https://food-x.s3.amazonaws.com/annot.tar'
 ANNOTATIONS_CHECKSUM = '0c632c543ceed0e70f0eb2db58eda3ab'
 
+def cut_tiles(grid_size: int, img: torch.Tensor) -> torch.Tensor:
+    """
+    Given an input tensor cuts tiles.
+    If the image is made of the tiles:
+    >>>[[0,1],
+    >>> [2,3]]
+    Returns the tiles in the order
+    >>>[0,1,2,3]
+    :param grid_size: size of the cut grid. grid_size**2 tiles will be cut.
+    :param img: source tensor
+    :return: a list of tiles ordered row wise from left to right
+    """
+    tiles = torch.stack(list(img.tensor_split(grid_size, dim=2)), 0)
+    tiles = torch.stack(list(tiles.tensor_split(grid_size, dim=2)), 0)
+    tiles = tiles.flatten(start_dim=0, end_dim=1)
+    return tiles
 
 def parse_classes_dict(directory: str, int_to_label=False) -> dict[str, int] | dict[int, str]:
     with open(os.path.join(directory, 'class_list.txt')) as f:
