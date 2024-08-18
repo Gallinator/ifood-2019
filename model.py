@@ -104,6 +104,7 @@ class FoodCNN(L.LightningModule):
 class FoodSSL(L.LightningModule):
     def __init__(self, num_perm: int, grid_size: int, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
+        self.save_hyperparameters()
         self.num_perm = num_perm
         self.num_tiles = grid_size * grid_size
         self.shared = nn.Sequential(
