@@ -9,7 +9,7 @@ from data_preprocessing import DATA_TRANSFORM, SSL_PER_TILE_TRANSFORM
 from food_dataset import FoodDataset, SSLFoodDataset
 import lightning as L
 
-from model import FoodCNN, FoodSSL
+from model import FoodCNN, FoodSSL, ConvNet
 
 
 def build_arg_parser():
@@ -38,8 +38,11 @@ def train(train_dir: str, val_dir: str, weights_dir: str, use_pretrained_conv_ne
                         limit_train_batches=0.5,
                         limit_val_batches=0.5,
                         max_epochs=1)
-    model = FoodCNN(len(train_data.classes))
-    torchinfo.summary(model)
+    conv_net = None
+    if use_pretrained_conv_net:
+        conv_net = ConvNet(False)
+        conv_net.load_state_dict(torch.load(os.path.join(weights_dir, 'ssl_conv_net.pt')))
+    model = FoodCNN(len(train_data.classes), conv_net)
     trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=val_loader)
     trainer.save_checkpoint(os.path.join(weights_dir, 'cnn.ckpt'))
 
