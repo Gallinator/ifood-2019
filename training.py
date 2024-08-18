@@ -27,7 +27,7 @@ def build_arg_parser():
     return arg_parser
 
 
-def train(train_dir: str, val_dir: str, weights_dir: str):
+def train(train_dir: str, val_dir: str, weights_dir: str, use_pretrained_conv_net: bool = False):
     train_data = FoodDataset(train_dir, transform=DATA_TRANSFORM)
     train_loader = DataLoader(train_data, batch_size=32, shuffle=True, num_workers=8, persistent_workers=True)
     val_data = FoodDataset(val_dir, transform=DATA_TRANSFORM)
@@ -77,6 +77,6 @@ if __name__ == '__main__':
             ssl_train(get_ssl_data_dir(args.train_dir), get_ssl_data_dir(args.val_dir), args.weights_dir)
             train(args.train_dir, args.val_dir, args.weights_dir, args.use_ssl_pretrained)
         case 'sup':
-            train(args.train_dir, args.val_dir, args.weights_dir)
+            train(args.train_dir, args.val_dir, args.weights_dir, args.use_ssl_pretrained)
         case 'selfsup':
             ssl_train(get_ssl_data_dir(args.train_dir), get_ssl_data_dir(args.val_dir), args.weights_dir)
