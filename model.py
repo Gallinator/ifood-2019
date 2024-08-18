@@ -98,3 +98,48 @@ class FoodCNN(L.LightningModule):
 
     def configure_optimizers(self):
         return AdamW(self.parameters(), lr=0.001)
+
+
+class FoodSSL(L.LightningModule):
+    def __init__(self, num_perm: int, grid_size: int, *args: Any, **kwargs: Any):
+        super().__init__(*args, **kwargs)
+        self.num_perm = num_perm
+        self.num_tiles = grid_size * grid_size
+        self.shared = nn.Sequential(
+            ConvNet(ssl_stride=True),
+            Flatten(start_dim=1),
+            nn.Linear(256, 64),
+            nn.ReLU())
+        self.linear = nn.Sequential(
+            nn.Linear(64 * grid_size ** 2, 256),
+            nn.ReLU(),
+            nn.Linear(256, 64),
+            nn.ReLU(),
+            nn.Linear(64, num_perm)
+        )
+
+    def configure_optimizers(self):
+        return AdamW(self.parameters(), lr=0.001)
+
+    def forward(self, x):
+        shared_outs = []
+        for t in x.tensor_split(self.num_tiles, dim=1):
+            shared_outs.append(self.shared(t))
+        y = torch.cat(shared_outs, dim=1)
+        return self.linear(y)
+
+    def training_step(self, batch, *args: Any, **kwargs: Any):
+        tiles, labels = batch
+        y = self.forward(tiles)
+        loss = nn.functional.cross_entropy(y, labels)
+        return loss
+
+    def validation_step(self, batch, *args: Any, **kwargs: Any):
+        img, label = batch
+        y = self.forward(img)
+        loss = nn.functional.cross_entropy(y, label)
+        y_proba = nn.functional.softmax(y, dim=1)
+        acc = multiclass_accuracy(y_proba, label, num_classes=self.num_perm)
+        self.log("Validation loss", loss, on_step=False, on_epoch=True)
+        self.log("Validation accuracy", acc, on_step=False, on_epoch=True)
+        return loss
