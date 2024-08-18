@@ -22,6 +22,8 @@ def build_arg_parser():
                             help='directory to store the trained model weights into')
     arg_parser.add_argument('--type', '-ty', type=str, default='sup',
                             help='type of training. Supported values are (full, sup, selfsup)')
+    arg_parser.add_argument('--use-ssl-pretrained', '-sp', type=bool, default=False,
+                            help='whether or not to use self supervised pretrained weights.Affects both sup and full training types')
     return arg_parser
 
 
