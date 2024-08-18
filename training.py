@@ -12,6 +12,13 @@ import lightning as L
 from model import FoodCNN, FoodSSL, ConvNet
 
 
+class ModuleSummaryCallback(L.Callback):
+    def on_fit_start(self, trainer: L.Trainer, pl_module: L.LightningModule) -> None:
+        print('\n')
+        torchinfo.summary(pl_module)
+        print('\n')
+
+
 def build_arg_parser():
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument('--train-dir', '-td', type=str, default='data/train_set',
@@ -37,7 +44,10 @@ def train(train_dir: str, val_dir: str, weights_dir: str, use_pretrained_conv_ne
                         enable_checkpointing=False,
                         limit_train_batches=0.5,
                         limit_val_batches=0.5,
-                        max_epochs=1)
+                        max_epochs=1,
+                        enable_model_summary=False,
+                        callbacks=[ModuleSummaryCallback()])
+
     conv_net = None
     if use_pretrained_conv_net:
         conv_net = ConvNet(False)
@@ -57,7 +67,10 @@ def ssl_train(train_dir: str, val_dir: str, weights_dir: str):
                         enable_checkpointing=False,
                         limit_train_batches=0.1,
                         limit_val_batches=0.1,
-                        max_epochs=1)
+                        max_epochs=1,
+                        enable_model_summary=False,
+                        callbacks=[ModuleSummaryCallback()])
+
     model = FoodSSL(2, 3)
     trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=val_loader)
     trainer.save_checkpoint(os.path.join(weights_dir, 'ssl_cnn.ckpt'))
