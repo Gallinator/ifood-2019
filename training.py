@@ -1,6 +1,7 @@
 import argparse
 import os.path
 
+import torch
 from torch.utils.data import DataLoader
 from torchinfo import torchinfo
 
@@ -55,6 +56,7 @@ def ssl_train(train_dir: str, val_dir: str, weights_dir: str):
     model = FoodSSL(2, 3)
     trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=val_loader)
     trainer.save_checkpoint(os.path.join(weights_dir, 'ssl_cnn.ckpt'))
+    torch.save(model.conv_net.state_dict(), os.path.join(weights_dir, 'ssl_conv_net.pt'))
 
 
 def get_ssl_data_dir(data_dir: str) -> str:

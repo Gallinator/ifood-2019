@@ -107,8 +107,9 @@ class FoodSSL(L.LightningModule):
         self.save_hyperparameters()
         self.num_perm = num_perm
         self.num_tiles = grid_size * grid_size
+        self.conv_net = ConvNet(ssl_stride=True)
         self.shared = nn.Sequential(
-            ConvNet(ssl_stride=True),
+            self.conv_net,
             Flatten(start_dim=1),
             nn.Linear(256, 64),
             nn.ReLU())
