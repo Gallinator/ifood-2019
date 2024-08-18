@@ -1,6 +1,7 @@
 import argparse
 import csv
 import itertools
+import multiprocessing
 import os
 import shutil
 import tarfile
@@ -11,11 +12,13 @@ import pandas as pd
 import requests
 import torch
 import tqdm
+from PIL import Image
 from scipy.spatial.distance import hamming
 from simple_file_checksum import get_checksum
 from sklearn.metrics import pairwise_distances
 from torchvision.transforms import v2
 from torchvision.transforms.v2.functional import to_pil_image
+from torchvision.utils import make_grid
 
 TRAIN_URL = 'https://food-x.s3.amazonaws.com/train.tar'
 TRAIN_CHECKSUM = '8e56440e365ee852dcb0953a9307e27f'
@@ -72,6 +75,47 @@ def cut_tiles(grid_size: int, img: torch.Tensor) -> torch.Tensor:
     tiles = torch.stack(list(tiles.tensor_split(grid_size, dim=2)), 0)
     tiles = tiles.flatten(start_dim=0, end_dim=1)
     return tiles
+
+
+def generate_tiles_task(path, files, grid_size: int, classes_dirs: list):
+    """
+    This function is used by multiprocessing to parallelize the tile generation task.
+    :param path: passed from os.walk()
+    :param files: passed from os.walk()
+    :param grid_size: size of the tiles grid
+    :param classes_dirs: list containing the class subfolder
+    """
+    for f in files:
+        fpath = os.path.join(path, f)
+        img = SSL_DATA_TRANSFORM(Image.open(fpath))
+        tiles = cut_tiles(grid_size, img)
+        for i, p in enumerate(permset):
+            t = tiles[list(p)]
+            grid = make_grid(t, padding=0, nrow=grid_size)
+            grid = to_pil_image(grid)
+            grid.save(os.path.join(classes_dirs[i], f))
+
+
+def create_ssl_set(src_dir: str, dest_dir: str, permset, grid_size: int):
+    """
+    Generates the unnormalized tiles for the Jigsaw pretext task from the source dataset.
+    The generated data is stored a tensors for convenience.
+    :param src_dir: path of the original data
+    :param dest_dir: directory to save the tiles to
+    :param permset: permutations
+    :param grid_size: size of the grid edge. Each permutation will have length grid_size**2
+    """
+    # Create dirs
+    os.makedirs(dest_dir, exist_ok=True)
+    classes_dirs = []
+    for i, p in enumerate(permset):
+        classes_dirs.append(os.path.join(dest_dir, str(p)))
+        os.makedirs(classes_dirs[-1], exist_ok=True)
+
+    with multiprocessing.Pool() as pool:
+        args = [(pth, files, grid_size, classes_dirs) for pth, folders, files in os.walk(src_dir)]
+        pool.starmap(generate_tiles_task, args)
+
 
 def parse_classes_dict(directory: str, int_to_label=False) -> dict[str, int] | dict[int, str]:
     with open(os.path.join(directory, 'class_list.txt')) as f:
