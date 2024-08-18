@@ -1,15 +1,19 @@
 import argparse
 import csv
+import itertools
 import os
 import shutil
 import tarfile
+import random
 
 import numpy as np
 import pandas as pd
 import requests
 import torch
 import tqdm
+from scipy.spatial.distance import hamming
 from simple_file_checksum import get_checksum
+from sklearn.metrics import pairwise_distances
 
 TRAIN_URL = 'https://food-x.s3.amazonaws.com/train.tar'
 TRAIN_CHECKSUM = '8e56440e365ee852dcb0953a9307e27f'
@@ -17,6 +21,25 @@ VAL_URL = 'https://food-x.s3.amazonaws.com/val.tar'
 VAL_CHECKSUM = 'fa9a4c1eb929835a0fe68734f4868d3b'
 ANNOTATIONS_URL = 'https://food-x.s3.amazonaws.com/annot.tar'
 ANNOTATIONS_CHECKSUM = '0c632c543ceed0e70f0eb2db58eda3ab'
+
+def get_max_permutation_set(length: int, set_size: int) -> list[tuple]:
+    """
+    Generates a set of permutations which maximizes the hamming distance between samples
+    :param length: size of the permutation
+    :param set_size: the size of the permutation set
+    :return: the permutation set
+    """
+    permutations = list(itertools.permutations(range(length)))
+    perm_set = []
+    j = random.randint(0, length - 1)
+    for _ in tqdm.tqdm(range(set_size), desc='Creating permutation set'):
+        perm_set.append(permutations[j])
+        del permutations[j]
+        dist = pairwise_distances(perm_set, permutations, metric=hamming, n_jobs=-1)
+        dist = np.sum(dist, axis=0)
+        j = np.argmax(dist)
+    return perm_set
+
 
 def cut_tiles(grid_size: int, img: torch.Tensor) -> torch.Tensor:
     """
