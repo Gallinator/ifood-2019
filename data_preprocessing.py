@@ -50,11 +50,14 @@ def get_max_permutation_set(length: int, set_size: int) -> list[tuple]:
     permutations = list(itertools.permutations(range(length)))
     perm_set = []
     j = random.randint(0, length - 1)
+    dist = np.zeros(len(permutations))
+
     for _ in tqdm.tqdm(range(set_size), desc='Creating permutation set'):
         perm_set.append(permutations[j])
         del permutations[j]
-        dist = pairwise_distances(perm_set, permutations, metric=hamming, n_jobs=-1)
-        dist = np.sum(dist, axis=0)
+        ham = pairwise_distances([perm_set[-1]], permutations, metric=hamming, n_jobs=-1)
+        dist = np.delete(dist, j)
+        dist = dist + ham
         j = np.argmax(dist)
     return perm_set
 
@@ -221,7 +224,7 @@ def build_arg_parser():
                             help='directory to store the preprocessed data into')
     arg_parser.add_argument('--download-dir', '-dl', type=str, default='data',
                             help='directory to store the downloaded data into. The download size is bout 3 Gb')
-    arg_parser.add_argument('--remove-src', '-rs', type=bool, default=True,
+    arg_parser.add_argument('--remove-src', '-rs', type=bool, default=False,
                             help='remove the source tar files')
     arg_parser.add_argument('--train-size', '-ts', type=float, default=0.8,
                             help='size of the train set. Must be in [0,1]')
