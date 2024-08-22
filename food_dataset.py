@@ -4,7 +4,7 @@ import torch
 from torchvision.datasets import ImageFolder
 from torchvision.transforms import v2
 
-from data_preprocessing import cut_tiles
+from transforms import cut_tiles
 
 
 class FoodDataset(ImageFolder):
