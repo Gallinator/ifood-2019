@@ -6,6 +6,7 @@ import os
 import shutil
 import tarfile
 import random
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -195,27 +196,26 @@ def create_val_set(data_dir: str, val_size: float):
     :param val_size: the size of the validation set in [0,1]
     :param data_dir: directory containing the training data
     """
-    train_info = pd.read_csv(os.path.join(data_dir, 'train_info.csv'), sep=',', names=['Image', 'Class'])
-    data_size = len(train_info)
-    rand_idx = np.random.permutation(range(data_size))
-    num_train = int(data_size * (1 - val_size))
-    train_idx = rand_idx[:num_train]
-    val_idx = rand_idx[num_train:]
-
-    val_info = train_info.iloc[val_idx, :]
-    train_info = train_info.iloc[train_idx, :]
-    train_info = train_info.reset_index(drop=True)
-
-    val_info.to_csv(os.path.join(data_dir, 'val_info.csv'), sep=',', index=False, header=False)
-    train_info.to_csv(os.path.join(data_dir, 'train_info.csv'), sep=',', index=False, header=False)
-
     train_dir = os.path.join(data_dir, 'train_set')
-    val_dir = os.path.join(data_dir, 'val_set')
-    os.makedirs(val_dir, exist_ok=True)
+    imgs = np.array(list(Path(train_dir).glob('**/*.jpg')))
+    data_size = len(imgs)
 
-    for _, row in val_info.iterrows():
-        image_name = row['Image']
-        shutil.move(os.path.join(train_dir, image_name), os.path.join(val_dir, image_name))
+    # Shuffle
+    rand_idx = np.random.permutation(range(data_size))
+    imgs = imgs[rand_idx]
+    num_train = int(data_size * (1 - val_size))
+    val_imgs = imgs[num_train:]
+
+    # Create validation directories
+    val_dir = os.path.join(data_dir, 'val_set')
+    for c in os.scandir(train_dir):
+        _, class_name = os.path.split(c)
+        os.makedirs(os.path.join(val_dir, class_name), exist_ok=True)
+
+    # Move
+    for img in tqdm.tqdm(val_imgs, desc='Creating validation set', unit=' image'):
+        val_path = str(img).replace('train_set', 'val_set')
+        shutil.move(img, val_path)
 
 
 def build_arg_parser():
@@ -277,11 +277,9 @@ def main():
     os.replace(os.path.join(data_dir, 'val_info.csv'), os.path.join(data_dir, 'test_info.csv'))
     os.rename(os.path.join(data_dir, 'val_set'), os.path.join(data_dir, 'test_set'))
 
-    create_val_set(data_dir, 1 - args.train_size)
-
     create_split_directory_structure(data_dir, 'train')
-    create_split_directory_structure(data_dir, 'val')
     create_split_directory_structure(data_dir, 'test')
+    create_val_set(data_dir, 1 - args.train_size)
 
     if args.generate_ssl:
         perms = get_max_permutation_set(9, args.ssl_perms)
