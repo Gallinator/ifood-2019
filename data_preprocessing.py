@@ -170,9 +170,9 @@ def extract_tar(file_path: str, dest_path: None | str):
     :param file_path: tar file to extract
     :param dest_path: parent directory to extract the file to
     """
-    print(f'Extracting {os.path.basename(file_path)}...')
     with tarfile.open(file_path) as src:
-        src.extractall(dest_path)
+        for m in tqdm.tqdm(src.getmembers(), desc=f'Extracting {os.path.basename(file_path)}'):
+            src.extract(member=m, path=dest_path)
 
 
 def clean_data_dir(data_path: str):
