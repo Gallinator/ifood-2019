@@ -232,6 +232,8 @@ def build_arg_parser():
                             help='generate the self supervised learning datasets')
     arg_parser.add_argument('--ssl-perms', '-sp', type=int, default=2,
                             help='number of permutations of the generated self supervised learning datasets')
+    arg_parser.add_argument('--clean', '-c', type=bool, default=False,
+                            help='whether or not to clean the data')
     return arg_parser
 
 
