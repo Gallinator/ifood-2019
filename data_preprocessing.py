@@ -166,7 +166,7 @@ def clean_data_dir(data_path: str):
         f_path = os.path.join(data_path, f)
         if os.path.isdir(f_path):
             shutil.rmtree(f_path)
-        elif f not in ['annot.tar', 'train.tar', 'val.tar']:
+        elif f not in ['annot.tar', 'train.tar', 'val.tar', 'train_set_embeddings.csv']:
             os.remove(f_path)
 
 
