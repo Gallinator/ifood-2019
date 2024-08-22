@@ -11,7 +11,6 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import requests
-import torch
 import tqdm
 from PIL import Image
 from scipy.spatial.distance import hamming
@@ -20,6 +19,8 @@ from sklearn.metrics import pairwise_distances
 from torchvision.transforms import v2
 from torchvision.transforms.v2.functional import to_pil_image
 from torchvision.utils import make_grid
+
+from data_cleaning import clean_data
 from transforms import NORM_MEAN, NORM_STD, cut_tiles
 
 TRAIN_URL = 'https://food-x.s3.amazonaws.com/train.tar'
@@ -260,6 +261,10 @@ def main():
 
     create_split_directory_structure(data_dir, 'train')
     create_split_directory_structure(data_dir, 'test')
+
+    if args.clean:
+        clean_data(os.path.join(data_dir, 'train_set'))
+
     create_val_set(data_dir, 1 - args.train_size)
 
     if args.generate_ssl:
