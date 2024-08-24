@@ -270,7 +270,7 @@ def main():
         os.remove(val_tar)
 
     os.replace(os.path.join(data_dir, 'val_info.csv'), os.path.join(data_dir, 'test_info.csv'))
-    os.rename(os.path.join(data_dir, 'val_set'), os.path.join(data_dir, 'test_set'))
+    os.rename(val_dir, test_dir)
 
     create_split_directory_structure(data_dir, 'train')
     create_split_directory_structure(data_dir, 'test')
@@ -286,8 +286,8 @@ def main():
 
     if args.generate_ssl:
         perms = get_max_permutation_set(9, args.ssl_perms)
-        create_ssl_set(os.path.join(data_dir, 'train_set'), perms, 3)
-        create_ssl_set(os.path.join(data_dir, 'val_set'), perms, 3)
+        create_ssl_set(train_dir, perms, 3)
+        create_ssl_set(val_dir, perms, 3)
 
 
 if __name__ == '__main__':
