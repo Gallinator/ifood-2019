@@ -282,7 +282,6 @@ def main():
 
     plot_labels_dist(train_dir)
     plot_labels_dist(val_dir)
-    plot_labels_dist(test_dir)
 
     if args.generate_ssl:
         perms = get_max_permutation_set(9, args.ssl_perms)
