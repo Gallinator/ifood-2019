@@ -203,19 +203,19 @@ def create_val_set(data_dir: str, val_size: float):
 
 def build_arg_parser():
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument('--data-dir', '-d', type=str, default='data',
+    arg_parser.add_argument('--data-dir', type=str, default='data',
                             help='directory to store the preprocessed data into')
-    arg_parser.add_argument('--download-dir', '-dl', type=str, default='data',
+    arg_parser.add_argument('--download-dir', type=str, default='data',
                             help='directory to store the downloaded data into. The download size is bout 3 Gb')
-    arg_parser.add_argument('--remove-src', '-rs', action='store_true', default=False,
+    arg_parser.add_argument('--remove-src', action='store_true', default=False,
                             help='remove the source tar files')
-    arg_parser.add_argument('--train-size', '-ts', type=float, default=0.8,
+    arg_parser.add_argument('--train-size', type=float, default=0.8,
                             help='size of the train set. Must be in [0,1]')
-    arg_parser.add_argument('--generate-ssl', '-ssl', type=bool, default=True,
+    arg_parser.add_argument('--generate-ssl', type=bool, default=True,
                             help='generate the self supervised learning datasets')
-    arg_parser.add_argument('--ssl-perms', '-sp', type=int, default=2,
+    arg_parser.add_argument('--ssl-perms', type=int, default=2,
                             help='number of permutations of the generated self supervised learning datasets')
-    arg_parser.add_argument('--clean-data', '-c', action='store_true', default=False,
+    arg_parser.add_argument('--clean-data', action='store_true', default=False,
                             help='whether or not to clean the data')
     return arg_parser
 
