@@ -211,7 +211,7 @@ def build_arg_parser():
                             help='remove the source tar files')
     arg_parser.add_argument('--train-size', type=float, default=0.8,
                             help='size of the train set. Must be in [0,1]')
-    arg_parser.add_argument('--generate-ssl', type=bool, default=True,
+    arg_parser.add_argument('--generate-ssl', type=bool, default=False,
                             help='generate the self supervised learning datasets')
     arg_parser.add_argument('--ssl-perms', type=int, default=2,
                             help='number of permutations of the generated self supervised learning datasets')
