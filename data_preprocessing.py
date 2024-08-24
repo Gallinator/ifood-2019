@@ -22,6 +22,7 @@ from torchvision.utils import make_grid
 
 from data_cleaning import clean_data
 from transforms import NORM_MEAN, NORM_STD, cut_tiles
+from visualization import plot_counts
 
 TRAIN_URL = 'https://food-x.s3.amazonaws.com/train.tar'
 TRAIN_CHECKSUM = '8e56440e365ee852dcb0953a9307e27f'
@@ -235,10 +236,22 @@ def create_split_directory_structure(data_dir: str, split: str):
         shutil.move(os.path.join(split_dir, row['Image']), os.path.join(dest_dir, row['Image']))
 
 
+def plot_labels_dist(info_path: str):
+    counts = []
+    classes = []
+    for d in os.listdir(info_path):
+        classes.append(d)
+        counts.append(len(os.listdir(os.path.join(info_path, d))))
+    plot_counts(counts, classes)
+
+
 def main():
     args = build_arg_parser().parse_args()
     download_dir = args.download_dir
     data_dir = args.data_dir
+    train_dir = os.path.join(data_dir, 'train_set')
+    val_dir = os.path.join(data_dir, 'val_set')
+    test_dir = os.path.join(data_dir, 'test_set')
 
     annotations_tar = download_data(ANNOTATIONS_URL, ANNOTATIONS_CHECKSUM, download_dir)
     train_tar = download_data(TRAIN_URL, TRAIN_CHECKSUM, download_dir)
@@ -266,6 +279,10 @@ def main():
         clean_data(os.path.join(data_dir, 'train_set'))
 
     create_val_set(data_dir, 1 - args.train_size)
+
+    plot_labels_dist(train_dir)
+    plot_labels_dist(val_dir)
+    plot_labels_dist(test_dir)
 
     if args.generate_ssl:
         perms = get_max_permutation_set(9, args.ssl_perms)
