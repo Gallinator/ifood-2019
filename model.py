@@ -4,43 +4,72 @@ import lightning as L
 import torch
 from torch import nn
 from torch.nn import Flatten
-from torch.optim import AdamW
+from torch.optim import SGD
+from torch.optim.lr_scheduler import StepLR
 from torchmetrics.functional.classification import multiclass_accuracy
+
+
+class InvertedResidual(nn.Module):
+    def __init__(self, in_channels, out_channels, expand: int, stride=1, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.use_residual = stride == 1 and in_channels == out_channels
+        expand_channels = expand * in_channels
+        layers = []
+        if expand != 1:
+            layers.extend([
+                nn.Conv2d(in_channels, expand_channels, 1),
+                nn.BatchNorm2d(expand_channels),
+                nn.ReLU6()
+            ])
+        layers.extend([
+            nn.Conv2d(expand_channels, expand_channels, 3, padding=1, stride=stride, groups=expand_channels),
+            nn.BatchNorm2d(expand_channels),
+            nn.ReLU6(),
+            nn.Conv2d(expand_channels, out_channels, 1),
+            nn.BatchNorm2d(out_channels)]
+        )
+        self.layers = nn.Sequential(*layers)
+
+    def forward(self, x):
+        y = self.layers(x)
+        if self.use_residual:
+            y = x + y
+        return y
+
+
+class InvertedBlock(nn.Module):
+    def __init__(self, in_channels, out_channels, expand, stride=1, repeat=1, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        layers = [InvertedResidual(in_channels, out_channels, expand, stride)]
+        for i in range(repeat - 1):
+            layers.append(InvertedResidual(out_channels, out_channels, expand))
+        self.layers = nn.Sequential(*layers)
+
+    def forward(self, x):
+        return self.layers(x)
 
 
 class ConvNet(L.LightningModule):
     def __init__(self, ssl_stride: bool = False, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
         self.save_hyperparameters()
-        self.conv = nn.Sequential(
-            EncoderBlock(3, 32, 4, 1 if ssl_stride else 3, 1, dropout=0.01),
-            EncoderBlock(32, 64, 4, 1 if ssl_stride else 2, 1, dropout=0.01),
-            EncoderBlock(64, 64, 4, 2, 1, dropout=0.01),
-            EncoderBlock(64, 128, 4, 2, 1, dropout=0.01),
-            EncoderBlock(128, 256, 2, 2, dropout=0.01),
-            EncoderBlock(256, 256, 2, 2, dropout=0.01),
-            EncoderBlock(256, 256, 2, 2, dropout=0.01))
+        self.layers = nn.Sequential(
+            nn.Conv2d(3, 32 // 2, 3, 2, 1),
+            nn.ReLU6(),
+            InvertedBlock(32 // 2, 16 // 2, 1),
+            InvertedBlock(16 // 2, 24 // 2, 3, 2, 2),
+            InvertedBlock(24 // 2, 32 // 2, 3, 2, 3),
+            InvertedBlock(32 // 2, 64 // 2, 3, 2, 4),
+            InvertedBlock(64 // 2, 96 // 2, 3, 1, 3),
+            InvertedBlock(96 // 2, 160 // 2, 3, 2, 3),
+            InvertedBlock(160 // 2, 320 // 2, 3),
+            nn.Conv2d(320 // 2, 1280 // 4, 1),
+            nn.AvgPool2d(7, 2, 3 if ssl_stride else 0),
+            nn.Conv2d(1280 // 4, 1024, 1)
+        )
 
     def forward(self, x) -> torch.Tensor:
-        return self.conv(x)
-
-
-class EncoderBlock(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=0, batch_norm=True, dropout=0.005,
-                 *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.conv = nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding)
-        self.batch_norm = nn.BatchNorm2d(out_channels)
-        self.dropout = nn.Dropout2d(dropout)
-        self.use_batch_norm = batch_norm
-        self.f = nn.LeakyReLU()
-
-    def forward(self, x):
-        x = self.conv(x)
-        if self.use_batch_norm:
-            x = self.batch_norm(x)
-        x = self.dropout(x)
-        return self.f(x)
+        return self.layers(x)
 
 
 class FoodCNN(L.LightningModule):
@@ -50,19 +79,22 @@ class FoodCNN(L.LightningModule):
         self.n_classes = n_classes
         self.conv_net = conv_net if conv_net else ConvNet()
         self.linear = nn.Sequential(
-            nn.Linear(256, 256),
-            nn.ReLU(),
-            nn.Linear(256, n_classes))
+            Flatten(1),
+            nn.Linear(1024, self.n_classes)
+        )
 
     def forward(self, x):
         y = self.conv_net(x)
-        y = torch.flatten(y, start_dim=1)
         return self.linear(y)
 
     def training_step(self, batch, *args: Any, **kwargs: Any):
         img, label = batch
         y = self.forward(img)
         loss = nn.functional.cross_entropy(y, label)
+        y_proba = nn.functional.softmax(y, dim=1)
+        acc = multiclass_accuracy(y_proba, label, num_classes=self.n_classes)
+        self.log("Training loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        self.log("Training accuracy", acc, on_step=False, on_epoch=True, prog_bar=True, logger=True)
         return loss
 
     def validation_step(self, batch, *args: Any, **kwargs: Any):
@@ -76,7 +108,8 @@ class FoodCNN(L.LightningModule):
         return loss
 
     def configure_optimizers(self):
-        return AdamW(self.parameters(), lr=0.001)
+        opt = SGD(self.parameters(), lr=0.045, weight_decay=0.00004, momentum=0.9)
+        return {'optimizer': opt, 'lr_scheduler': StepLR(opt, 1, 0.98)}
 
 
 class FoodSSL(L.LightningModule):
@@ -89,7 +122,7 @@ class FoodSSL(L.LightningModule):
         self.shared = nn.Sequential(
             self.conv_net,
             Flatten(start_dim=1),
-            nn.Linear(256, 64),
+            nn.Linear(1024, 64),
             nn.ReLU())
         self.linear = nn.Sequential(
             nn.Linear(64 * grid_size ** 2, 256),
@@ -100,7 +133,8 @@ class FoodSSL(L.LightningModule):
         )
 
     def configure_optimizers(self):
-        return AdamW(self.parameters(), lr=0.001)
+        opt = SGD(self.parameters(), lr=0.045, weight_decay=0.00004, momentum=0.9)
+        return {'optimizer': opt, 'lr_scheduler': StepLR(opt, 1, 0.98)}
 
     def forward(self, x):
         shared_outs = []
