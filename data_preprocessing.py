@@ -6,7 +6,6 @@ import os
 import shutil
 import tarfile
 import random
-from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -16,6 +15,7 @@ from PIL import Image
 from scipy.spatial.distance import hamming
 from simple_file_checksum import get_checksum
 from sklearn.metrics import pairwise_distances
+from sklearn.model_selection import train_test_split
 from torchvision.transforms import v2
 from torchvision.transforms.v2.functional import to_pil_image
 from torchvision.utils import make_grid
@@ -179,14 +179,14 @@ def create_val_set(data_dir: str, val_size: float):
     :param data_dir: directory containing the training data
     """
     train_dir = os.path.join(data_dir, 'train_set')
-    imgs = np.array(list(Path(train_dir).glob('**/*.jpg')))
-    data_size = len(imgs)
+    imgs = []
+    classes = []
+    for r, d, files in os.walk(train_dir):
+        for f in files:
+            imgs.append(os.path.join(r, f))
+            classes.append(os.path.split(r)[1])
 
-    # Shuffle
-    rand_idx = np.random.permutation(range(data_size))
-    imgs = imgs[rand_idx]
-    num_train = int(data_size * (1 - val_size))
-    val_imgs = imgs[num_train:]
+    _, val_imgs = train_test_split(imgs, test_size=val_size, shuffle=True, stratify=classes)
 
     # Create validation directories
     val_dir = os.path.join(data_dir, 'val_set')
