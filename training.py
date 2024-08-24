@@ -21,15 +21,15 @@ class ModuleSummaryCallback(L.Callback):
 
 def build_arg_parser():
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument('--train-dir', '-td', type=str, default='data/train_set',
+    arg_parser.add_argument('--train-dir', type=str, default='data/train_set',
                             help='directory containing the training data')
-    arg_parser.add_argument('--val-dir', '-vd', type=str, default='data/val_set',
+    arg_parser.add_argument('--val-dir', type=str, default='data/val_set',
                             help='directory containing the training data')
-    arg_parser.add_argument('--weights-dir', '-wd', type=str, default='weights',
+    arg_parser.add_argument('--weights-dir', type=str, default='weights',
                             help='directory to store the trained model weights into')
-    arg_parser.add_argument('--type', '-ty', type=str, default='sup',
+    arg_parser.add_argument('--type', type=str, default='sup',
                             help='type of training. Supported values are (full, sup, selfsup)')
-    arg_parser.add_argument('--use-ssl-pretrained', '-sp', action='store_true', default=False,
+    arg_parser.add_argument('--use-ssl-pretrained', action='store_true', default=False,
                             help='whether or not to use self supervised pretrained weights.Affects both sup and full training types')
     return arg_parser
 
