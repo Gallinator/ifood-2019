@@ -39,6 +39,8 @@ def train(train_dir: str, val_dir: str, weights_dir: str, use_pretrained_conv_ne
     train_loader = DataLoader(train_data, batch_size=32, shuffle=True, num_workers=8, persistent_workers=True)
     val_data = FoodDataset(val_dir, transform=DATA_TRANSFORM)
     val_loader = DataLoader(val_data, batch_size=4, num_workers=8, persistent_workers=True)
+    train_loader = DataLoader(train_data, batch_size=256, shuffle=True, num_workers=14, persistent_workers=True)
+    val_loader = DataLoader(val_data, batch_size=256, num_workers=14, persistent_workers=True)
     trainer = L.Trainer(devices='auto',
                         enable_progress_bar=True,
                         enable_checkpointing=False,
