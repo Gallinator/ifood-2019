@@ -10,6 +10,7 @@ from food_dataset import FoodDataset, SSLFoodDataset
 import lightning as L
 
 from model import FoodCNN, FoodSSL, ConvNet
+from transforms import SUP_TRAIN_TRANSFORM, SUP_VAL_TRANSFORM
 
 
 class ModuleSummaryCallback(L.Callback):
@@ -35,11 +36,9 @@ def build_arg_parser():
 
 
 def train(train_dir: str, val_dir: str, weights_dir: str, use_pretrained_conv_net: bool = False):
-    train_data = FoodDataset(train_dir, transform=DATA_TRANSFORM)
-    train_loader = DataLoader(train_data, batch_size=32, shuffle=True, num_workers=8, persistent_workers=True)
-    val_data = FoodDataset(val_dir, transform=DATA_TRANSFORM)
-    val_loader = DataLoader(val_data, batch_size=4, num_workers=8, persistent_workers=True)
+    train_data = FoodDataset(train_dir, transform=SUP_TRAIN_TRANSFORM)
     train_loader = DataLoader(train_data, batch_size=256, shuffle=True, num_workers=14, persistent_workers=True)
+    val_data = FoodDataset(val_dir, transform=SUP_VAL_TRANSFORM)
     val_loader = DataLoader(val_data, batch_size=256, num_workers=14, persistent_workers=True)
     trainer = L.Trainer(devices='auto',
                         enable_progress_bar=True,
