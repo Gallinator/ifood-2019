@@ -10,6 +10,7 @@ import random
 import numpy as np
 import pandas as pd
 import requests
+import torch
 import tqdm
 from PIL import Image
 from scipy.spatial.distance import hamming
@@ -32,12 +33,17 @@ ANNOTATIONS_URL = 'https://food-x.s3.amazonaws.com/annot.tar'
 ANNOTATIONS_CHECKSUM = '0c632c543ceed0e70f0eb2db58eda3ab'
 
 DATA_TRANSFORM = v2.Compose([v2.Resize(256),
-                             v2.CenterCrop(256),
-                             v2.ToTensor(),
+                             v2.CenterCrop(224),
+                             v2.RandomHorizontalFlip(),
+                             v2.ColorJitter(),
+                             v2.ToImage(),
+                             v2.ToDtype(torch.float32, scale=True),
                              v2.Normalize(NORM_MEAN, NORM_STD)])
+
 SSL_DATA_TRANSFORM = v2.Compose([v2.Resize(256),
                                  v2.CenterCrop(225),
                                  v2.ToTensor()])
+
 SSL_PER_TILE_TRANSFORM = v2.Compose([v2.RandomCrop(64),
                                      v2.Normalize(NORM_MEAN, NORM_STD)])
 
