@@ -91,9 +91,9 @@ if __name__ == '__main__':
     args = build_arg_parser().parse_args()
     match args.type:
         case 'full':
-            ssl_train(get_ssl_data_dir(args.train_dir), get_ssl_data_dir(args.val_dir), args.weights_dir)
+            ssl_train(args.train_dir, args.val_dir, args.weights_dir)
             train(args.train_dir, args.val_dir, args.weights_dir, args.use_ssl_pretrained)
         case 'sup':
             train(args.train_dir, args.val_dir, args.weights_dir, args.use_ssl_pretrained)
         case 'selfsup':
-            ssl_train(get_ssl_data_dir(args.train_dir), get_ssl_data_dir(args.val_dir), args.weights_dir)
+            ssl_train(args.train_dir, args.val_dir, args.weights_dir)
