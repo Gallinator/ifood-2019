@@ -141,7 +141,7 @@ class FoodSSL(L.LightningModule):
     def forward(self, x):
         shared_outs = []
         for t in x.tensor_split(self.num_tiles, dim=1):
-            shared_outs.append(self.shared(t))
+            shared_outs.append(self.shared(torch.squeeze(t)))
         y = torch.cat(shared_outs, dim=1)
         return self.linear(y)
 
