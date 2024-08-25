@@ -5,12 +5,11 @@ import torch
 from torch.utils.data import DataLoader
 from torchinfo import torchinfo
 
-from data_preprocessing import DATA_TRANSFORM, SSL_PER_TILE_TRANSFORM
 from food_dataset import FoodDataset, SSLFoodDataset
 import lightning as L
 
 from model import FoodCNN, FoodSSL, ConvNet
-from transforms import SUP_TRAIN_TRANSFORM, SUP_VAL_TRANSFORM
+from transforms import SUP_TRAIN_TRANSFORM, SUP_VAL_TRANSFORM, SSL_DATA_TRANSFORM
 
 
 class ModuleSummaryCallback(L.Callback):
