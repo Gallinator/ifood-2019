@@ -1,10 +1,5 @@
 from typing import Optional, Callable
-
-import torch
 from torchvision.datasets import ImageFolder
-from torchvision.transforms import v2
-
-from transforms import cut_tiles
 
 
 class FoodDataset(ImageFolder):
@@ -18,14 +13,14 @@ class FoodDataset(ImageFolder):
 
 
 class SSLFoodDataset(ImageFolder):
-    def __init__(self, root: str, grid_size: int, per_tile_transform=None):
-        super().__init__(root, transform=v2.Compose([v2.ToTensor()]))
-        self.per_tile_transform = per_tile_transform
-        self.grid_size = grid_size
+    def __init__(self, root: str, transform):
+        super().__init__(root, transform=transform)
 
     def __getitem__(self, item):
+        """
+        Discards the original label and uses the permutation instead.
+        :param item: a tuple of ((tensor, perm_label), class_label)
+        :return: a tuple of (tensor, perm_label)
+        """
         img, label = super().__getitem__(item)
-        tiles = cut_tiles(self.grid_size, img)
-        if self.per_tile_transform:
-            tiles = torch.vstack([self.per_tile_transform(t) for t in tiles])
-        return tiles, label
+        return img
