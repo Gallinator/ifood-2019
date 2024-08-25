@@ -1,8 +1,23 @@
 import torch
+from torchvision.transforms import v2
 
 NORM_MEAN = [0.485, 0.456, 0.406]
 NORM_STD = [0.229, 0.224, 0.225]
 
+DATA_TRANSFORM = v2.Compose([v2.Resize(256),
+                             v2.CenterCrop(224),
+                             v2.RandomHorizontalFlip(),
+                             v2.ColorJitter(),
+                             v2.ToImage(),
+                             v2.ToDtype(torch.float32, scale=True),
+                             v2.Normalize(NORM_MEAN, NORM_STD)])
+
+SSL_DATA_TRANSFORM = v2.Compose([v2.Resize(256),
+                                 v2.CenterCrop(225),
+                                 v2.ToTensor()])
+
+SSL_PER_TILE_TRANSFORM = v2.Compose([v2.RandomCrop(64),
+                                     v2.Normalize(NORM_MEAN, NORM_STD)])
 
 def cut_tiles(grid_size: int, inpt: torch.Tensor) -> torch.Tensor:
     """

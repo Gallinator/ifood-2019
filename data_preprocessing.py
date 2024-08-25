@@ -17,12 +17,11 @@ from scipy.spatial.distance import hamming
 from simple_file_checksum import get_checksum
 from sklearn.metrics import pairwise_distances
 from sklearn.model_selection import train_test_split
-from torchvision.transforms import v2
 from torchvision.transforms.v2.functional import to_pil_image
 from torchvision.utils import make_grid
 
 from data_cleaning import clean_data
-from transforms import NORM_MEAN, NORM_STD, cut_tiles
+from transforms import cut_tiles
 from visualization import plot_counts
 
 TRAIN_URL = 'https://food-x.s3.amazonaws.com/train.tar'
@@ -31,21 +30,6 @@ VAL_URL = 'https://food-x.s3.amazonaws.com/val.tar'
 VAL_CHECKSUM = 'fa9a4c1eb929835a0fe68734f4868d3b'
 ANNOTATIONS_URL = 'https://food-x.s3.amazonaws.com/annot.tar'
 ANNOTATIONS_CHECKSUM = '0c632c543ceed0e70f0eb2db58eda3ab'
-
-DATA_TRANSFORM = v2.Compose([v2.Resize(256),
-                             v2.CenterCrop(224),
-                             v2.RandomHorizontalFlip(),
-                             v2.ColorJitter(),
-                             v2.ToImage(),
-                             v2.ToDtype(torch.float32, scale=True),
-                             v2.Normalize(NORM_MEAN, NORM_STD)])
-
-SSL_DATA_TRANSFORM = v2.Compose([v2.Resize(256),
-                                 v2.CenterCrop(225),
-                                 v2.ToTensor()])
-
-SSL_PER_TILE_TRANSFORM = v2.Compose([v2.RandomCrop(64),
-                                     v2.Normalize(NORM_MEAN, NORM_STD)])
 
 
 def get_max_permutation_set(length: int, set_size: int) -> list[tuple]:
