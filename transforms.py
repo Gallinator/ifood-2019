@@ -55,12 +55,16 @@ SUP_VAL_TRANSFORM = v2.Compose([v2.Resize(256),
                                 v2.ToDtype(torch.float32, scale=True),
                                 v2.Normalize(NORM_MEAN, NORM_STD)])
 
-SSL_DATA_TRANSFORM = v2.Compose([v2.Resize(256),
-                                 v2.CenterCrop(225),
-                                 v2.ToTensor()])
-
 SSL_PER_TILE_TRANSFORM = v2.Compose([v2.RandomCrop(64),
                                      v2.Normalize(NORM_MEAN, NORM_STD)])
+
+SSL_DATA_TRANSFORM = v2.Compose([v2.Resize(256),
+                                 v2.CenterCrop(225),
+                                 v2.ToTensor(),
+                                 JigSaw(3),
+                                 ShuffleJigSaw([[0, 1, 2, 3, 4, 5, 6, 7, 8], [0, 1, 2, 5, 6, 7, 8, 4, 3],
+                                                [0, 3, 2, 8, 6, 7, 1, 4, 5]]),
+                                 MultiImageTransform(64, SSL_PER_TILE_TRANSFORM)])
 
 
 def cut_tiles(grid_size: int, inpt: torch.Tensor) -> torch.Tensor:
