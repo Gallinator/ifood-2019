@@ -27,14 +27,14 @@ ANNOTATIONS_URL = 'https://food-x.s3.amazonaws.com/annot.tar'
 ANNOTATIONS_CHECKSUM = '0c632c543ceed0e70f0eb2db58eda3ab'
 
 
-def get_max_permutation_set(length: int, set_size: int) -> list[tuple]:
+def get_max_permutation_set(length: int, set_size: int) -> list[list]:
     """
     Generates a set of permutations which maximizes the hamming distance between samples
     :param length: size of the permutation
     :param set_size: the size of the permutation set
     :return: the permutation set
     """
-    permutations = list(itertools.permutations(range(length)))
+    permutations = [list(t) for t in itertools.permutations(range(length))]
     perm_set = []
     j = random.randint(0, length - 1)
     dist = np.zeros(len(permutations))
