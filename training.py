@@ -77,15 +77,6 @@ def ssl_train(train_dir: str, val_dir: str, weights_dir: str):
     torch.save(model.conv_net.state_dict(), os.path.join(weights_dir, 'ssl_conv_net.pt'))
 
 
-def get_ssl_data_dir(data_dir: str) -> str:
-    """
-    :param data_dir: source data path
-    :return: the directory path of the self supervised version of the data
-    """
-    dest_dir = os.path.basename(data_dir)
-    return os.path.join(os.path.split(data_dir)[0], 'ssl', dest_dir)
-
-
 if __name__ == '__main__':
     args = build_arg_parser().parse_args()
     match args.type:
