@@ -231,7 +231,7 @@ def main():
     create_split_directory_structure(data_dir, 'train')
     create_split_directory_structure(data_dir, 'test')
 
-    if args.clean:
+    if args.clean_data:
         clean_data(os.path.join(data_dir, 'train_set'))
 
     create_val_set(data_dir, 1 - args.train_size)
