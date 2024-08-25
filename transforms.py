@@ -1,5 +1,44 @@
 import torch
+from torch import nn
 from torchvision.transforms import v2
+
+
+class JigSaw(nn.Module):
+    def __init__(self, grid_size: int, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.grid_size = grid_size
+
+    def forward(self, inpt):
+        tiles = torch.stack(list(inpt.tensor_split(self.grid_size, dim=2)), 0)
+        tiles = torch.stack(list(tiles.tensor_split(self.grid_size, dim=2)), 0)
+        return tiles.flatten(start_dim=0, end_dim=1)
+
+
+class MultiImageTransform(nn.Module):
+    def __init__(self, final_size, transform, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.transform = transform
+        self.final_size = final_size
+
+    def forward(self, inpt):
+        imgs, label = inpt
+        out = torch.zeros((len(imgs), 3, self.final_size, self.final_size))
+        for i, img in enumerate(imgs):
+            out[i] = self.transform(img)
+        return out, label
+
+
+class ShuffleJigSaw(nn.Module):
+    def __init__(self, perms: list, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.perms = perms
+        self.perms_size = len(perms)
+
+    def forward(self, inpt: torch.Tensor):
+        label = torch.randint(high=self.perms_size, size=(1,))
+        perm = self.perms[label]
+        return inpt[perm], label[0]
+
 
 NORM_MEAN = [0.485, 0.456, 0.406]
 NORM_STD = [0.229, 0.224, 0.225]
