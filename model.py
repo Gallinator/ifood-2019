@@ -123,7 +123,7 @@ class FoodSSL(L.LightningModule):
         self.conv_net = ConvNet(ssl_stride=True)
         self.shared = nn.Sequential(
             self.conv_net,
-            Flatten(start_dim=1),
+            Flatten(1),
             nn.Linear(1024, 64),
             nn.ReLU())
         self.linear = nn.Sequential(
