@@ -1,7 +1,6 @@
 import argparse
 import csv
 import itertools
-import multiprocessing
 import os
 import shutil
 import tarfile
@@ -10,18 +9,14 @@ import random
 import numpy as np
 import pandas as pd
 import requests
-import torch
 import tqdm
 from PIL import Image
 from scipy.spatial.distance import hamming
 from simple_file_checksum import get_checksum
 from sklearn.metrics import pairwise_distances
 from sklearn.model_selection import train_test_split
-from torchvision.transforms.v2.functional import to_pil_image
-from torchvision.utils import make_grid
 
 from data_cleaning import clean_data
-from transforms import cut_tiles
 from visualization import plot_counts
 
 TRAIN_URL = 'https://food-x.s3.amazonaws.com/train.tar'
@@ -54,27 +49,7 @@ def get_max_permutation_set(length: int, set_size: int) -> list[tuple]:
     return perm_set
 
 
-def generate_tiles_task(path, files, grid_size: int, classes_dirs: list, permset):
-    """
-    This function is used by multiprocessing to parallelize the tile generation task.
-    :param permset: the permutation set
-    :param path: passed from os.walk()
-    :param files: passed from os.walk()
-    :param grid_size: size of the tiles grid
-    :param classes_dirs: list containing the class subfolder
-    """
-    for f in files:
-        fpath = os.path.join(path, f)
-        img = SSL_DATA_TRANSFORM(Image.open(fpath))
-        tiles = cut_tiles(grid_size, img)
-        for i, p in enumerate(permset):
-            t = tiles[list(p)]
-            grid = make_grid(t, padding=0, nrow=grid_size)
-            grid = to_pil_image(grid)
-            grid.save(os.path.join(classes_dirs[i], f))
-
-
-def create_ssl_set(src_dir: str, permset, grid_size: int):
+def create_ssl_perms(save_path: str, set_size: int, grid_size: int):
     """
     Generates the unnormalized tiles for the Jigsaw pretext task from the source dataset.
     The generated data is stored a tensors for convenience.
@@ -82,17 +57,8 @@ def create_ssl_set(src_dir: str, permset, grid_size: int):
     :param permset: permutations
     :param grid_size: size of the grid edge. Each permutation will have length grid_size**2
     """
-    # Create dirs
-    dest_dir = os.path.join(os.path.split(src_dir)[0], 'ssl', os.path.basename(src_dir))
-    os.makedirs(dest_dir, exist_ok=True)
-    classes_dirs = []
-    for i, p in enumerate(permset):
-        classes_dirs.append(os.path.join(dest_dir, str(p)))
-        os.makedirs(classes_dirs[-1], exist_ok=True)
-
-    with multiprocessing.Pool() as pool:
-        args = [(pth, files, grid_size, classes_dirs, permset) for pth, folders, files in os.walk(src_dir)]
-        pool.starmap(generate_tiles_task, args)
+    perms = get_max_permutation_set(grid_size, set_size)
+    np.save(save_path, np.array(perms))
 
 
 def parse_classes_dict(directory: str, int_to_label=False) -> dict[str, int] | dict[int, str]:
@@ -274,9 +240,7 @@ def main():
     plot_labels_dist(val_dir)
 
     if args.generate_ssl:
-        perms = get_max_permutation_set(9, args.ssl_perms)
-        create_ssl_set(train_dir, perms, 3)
-        create_ssl_set(val_dir, perms, 3)
+        create_ssl_perms(os.path.join(data_dir, 'ssl_permutations.npz'), args.ssl_perms, 9)
 
 
 if __name__ == '__main__':
