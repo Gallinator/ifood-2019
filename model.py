@@ -109,6 +109,16 @@ class FoodCNN(L.LightningModule):
         self.log("Validation accuracy", acc, on_step=False, on_epoch=True, prog_bar=True, logger=True)
         return loss
 
+    def predict_step(self, batch):
+        """
+        :param batch: input of size (batch_size,c,w,h)
+        :return: a tuple containing the predicted classes and predicted probabilities
+        """
+        x, _ = batch
+        y = self.forward(x)
+        y = nn.functional.softmax(y, dim=1)
+        return torch.argmax(y, dim=1), y
+
     def configure_optimizers(self):
         opt = SGD(self.parameters(), lr=0.045, weight_decay=0.00004, momentum=0.9)
         return {'optimizer': opt, 'lr_scheduler': StepLR(opt, 1, 0.98)}
