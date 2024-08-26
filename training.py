@@ -3,13 +3,15 @@ import os.path
 
 import numpy as np
 import torch
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.tree import DecisionTreeClassifier
 from torch.utils.data import DataLoader
 from torchinfo import torchinfo
 
 from food_dataset import FoodDataset, SSLFoodDataset
 import lightning as L
 
-from model import FoodCNN, FoodSSL, ConvNet
+from model import FoodCNN, FoodSSL, ConvNet, TraditionalFoodClassifier
 from transforms import SUP_TRAIN_TRANSFORM, SUP_VAL_TRANSFORM, SSL_DATA_TRANSFORM
 
 
@@ -81,6 +83,20 @@ def ssl_train(train_dir: str, val_dir: str, weights_dir: str, perms_path: str):
     torch.save(model.conv_net.state_dict(), os.path.join(weights_dir, 'ssl_conv_net.pt'))
 
 
+def train_classifier(weights_dir: str, train_dir: str, val_dir: str):
+    conv_net = ConvNet()
+    conv_net.load_state_dict(torch.load(os.path.join(weights_dir, 'ssl_conv_net.pt')))
+    train_data = FoodDataset(train_dir, transform=SUP_TRAIN_TRANSFORM)
+    val_data = FoodDataset(val_dir, transform=SUP_VAL_TRANSFORM)
+
+    classifier = TraditionalFoodClassifier(conv_net, torch.device('cuda'),
+                                           MinMaxScaler(),
+                                           DecisionTreeClassifier(max_depth=1, max_features=10))
+
+    classifier.fit(train_data)
+    classifier.save(weights_dir)
+
+
 if __name__ == '__main__':
     args = build_arg_parser().parse_args()
     match args.type:
@@ -91,3 +107,5 @@ if __name__ == '__main__':
             train(args.train_dir, args.val_dir, args.weights_dir, args.use_ssl_pretrained)
         case 'selfsup':
             ssl_train(args.train_dir, args.val_dir, args.weights_dir, args.ssl_permutations)
+        case 'classifier':
+            train_classifier(args.weights_dir, args.val_dir, args.val_dir)
