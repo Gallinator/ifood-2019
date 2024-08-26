@@ -21,23 +21,10 @@ class MultiImageTransform(nn.Module):
         self.final_size = final_size
 
     def forward(self, inpt):
-        imgs, label = inpt
-        out = torch.zeros((len(imgs), 3, self.final_size, self.final_size))
-        for i, img in enumerate(imgs):
+        out = torch.zeros((len(inpt), 3, self.final_size, self.final_size))
+        for i, img in enumerate(inpt):
             out[i] = self.transform(img)
-        return out, label
-
-
-class ShuffleJigSaw(nn.Module):
-    def __init__(self, perms: list, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.perms = perms
-        self.perms_size = len(perms)
-
-    def forward(self, inpt: torch.Tensor):
-        label = torch.randint(high=self.perms_size, size=(1,))
-        perm = self.perms[label]
-        return inpt[perm], label[0]
+        return out
 
 
 NORM_MEAN = [0.485, 0.456, 0.406]
@@ -62,6 +49,4 @@ SSL_DATA_TRANSFORM = v2.Compose([v2.Resize(256),
                                  v2.CenterCrop(225),
                                  v2.ToTensor(),
                                  JigSaw(3),
-                                 ShuffleJigSaw([[0, 1, 2, 3, 4, 5, 6, 7, 8], [0, 1, 2, 5, 6, 7, 8, 4, 3],
-                                                [0, 3, 2, 8, 6, 7, 1, 4, 5]]),
                                  MultiImageTransform(64, SSL_PER_TILE_TRANSFORM)])
