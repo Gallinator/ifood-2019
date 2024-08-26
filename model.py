@@ -65,7 +65,8 @@ class ConvNet(L.LightningModule):
             InvertedBlock(160 // 2, 320 // 2, 3),
             nn.Conv2d(320 // 2, 1280 // 4, 1),
             nn.AvgPool2d(7, 2, 3 if ssl_stride else 0),
-            nn.Conv2d(1280 // 4, 1024, 1)
+            nn.Conv2d(1280 // 4, 1024, 1),
+            Flatten(1)
         )
 
     def forward(self, x) -> torch.Tensor:
@@ -79,7 +80,6 @@ class FoodCNN(L.LightningModule):
         self.n_classes = n_classes
         self.conv_net = conv_net if conv_net else ConvNet()
         self.linear = nn.Sequential(
-            Flatten(1),
             nn.Dropout(0.2),
             nn.Linear(1024, self.n_classes),
             nn.ReLU()
@@ -123,7 +123,6 @@ class FoodSSL(L.LightningModule):
         self.conv_net = ConvNet(ssl_stride=True)
         self.shared = nn.Sequential(
             self.conv_net,
-            Flatten(1),
             nn.Linear(1024, 64),
             nn.ReLU())
         self.linear = nn.Sequential(
