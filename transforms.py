@@ -39,6 +39,7 @@ SUP_TRAIN_TRANSFORM = v2.Compose([v2.Resize(256),
                                   v2.Normalize(NORM_MEAN, NORM_STD)])
 SUP_VAL_TRANSFORM = v2.Compose([v2.Resize(256),
                                 v2.CenterCrop(224),
+                                v2.ToImage(),
                                 v2.ToDtype(torch.float32, scale=True),
                                 v2.Normalize(NORM_MEAN, NORM_STD)])
 
