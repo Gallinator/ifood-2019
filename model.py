@@ -1,12 +1,18 @@
+import os.path
 from typing import Any
 
 import lightning as L
 import torch
-from torch import nn
+import tqdm
+from torch import nn, Tensor
 from torch.nn import Flatten
 from torch.optim import SGD
 from torch.optim.lr_scheduler import StepLR
+from torch.utils.data import DataLoader
 from torchmetrics.functional.classification import multiclass_accuracy
+import skops.io as sio
+
+from food_dataset import FoodDataset
 
 
 class InvertedResidual(nn.Module):
@@ -169,3 +175,61 @@ class FoodSSL(L.LightningModule):
         self.log("Validation loss", loss, on_step=False, on_epoch=True)
         self.log("Validation accuracy", acc, on_step=False, on_epoch=True)
         return loss
+
+
+class TraditionalFoodClassifier:
+    def __init__(self, conv_net: ConvNet, device, repr_scaler, classifier):
+        self.conv_net = conv_net
+        self.conv_net.to(device)
+        self.classifier = classifier
+        self.device = device
+        self.repr_scaler = repr_scaler
+
+    def extract_representations(self, dataset: FoodDataset):
+        dataloader = DataLoader(dataset, batch_size=256, shuffle=False, num_workers=14, persistent_workers=True)
+        representations = []
+        labels = []
+        for batch in tqdm.tqdm(dataloader, desc='Extracting data representation'):
+            x, label = batch
+            y = self.conv_net(x.to(self.device))
+            y = y.to('cpu').detach()
+            representations.append(y)
+            labels.append(label)
+            del x
+            torch.cuda.empty_cache()
+        return torch.cat(representations, dim=0).numpy(force=True), torch.cat(labels, dim=0).numpy(force=True)
+
+    def save(self, path: str):
+        sio.dump(self.classifier, os.path.join(path, 'traditional_classifier.skops'))
+        sio.dump(self.repr_scaler, os.path.join(path, 'repr_scaler.skops'))
+
+    @staticmethod
+    def load(root: str, device: torch.device):
+        classifier_path = os.path.join(root, 'traditional_classifier.skops')
+        scaler_path = os.path.join(root, 'repr_scaler.skops')
+
+        conv_net = ConvNet()
+        conv_net.load_state_dict(torch.load(os.path.join(root, 'ssl_conv_net.pt')))
+
+        classifier = sio.load(classifier_path, sio.get_untrusted_types(file=classifier_path))
+        scaler = sio.load(scaler_path, sio.get_untrusted_types(file=scaler_path))
+
+        return TraditionalFoodClassifier(conv_net, device, scaler, classifier)
+
+    def fit(self, dataset: FoodDataset):
+        self.conv_net.eval()
+        representations, labels = self.extract_representations(dataset)
+        self.repr_scaler = self.repr_scaler.fit(representations)
+        self.classifier.fit(representations, labels)
+        return self
+
+    def predict(self, img: Tensor | FoodDataset):
+        self.conv_net.eval()
+        representation = None
+        if isinstance(img, Tensor):
+            representation = self.conv_net(img.to(self.device))
+        elif isinstance(img, FoodDataset):
+            representation, _ = self.extract_representations(img)
+        representation = self.repr_scaler.transform(representation)
+
+        return self.classifier.predict(representation), self.classifier.predict_proba(representation)
