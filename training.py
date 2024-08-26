@@ -31,6 +31,8 @@ def build_arg_parser():
                             help='type of training. Supported values are (full, sup, selfsup)')
     arg_parser.add_argument('--use-ssl-pretrained', action='store_true', default=False,
                             help='whether or not to use self supervised pretrained weights.Affects both sup and full training types')
+    arg_parser.add_argument('--ssl-permutations', type=str, default='data/ssl_permutations.npy',
+                            help='path to the file containing the jigsaw permutations')
     return arg_parser
 
 
