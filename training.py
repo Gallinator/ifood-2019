@@ -1,6 +1,7 @@
 import argparse
 import os.path
 
+import numpy as np
 import torch
 from torch.utils.data import DataLoader
 from torchinfo import torchinfo
@@ -59,10 +60,11 @@ def train(train_dir: str, val_dir: str, weights_dir: str, use_pretrained_conv_ne
     trainer.save_checkpoint(os.path.join(weights_dir, 'cnn.ckpt'))
 
 
-def ssl_train(train_dir: str, val_dir: str, weights_dir: str):
-    train_data = SSLFoodDataset(train_dir, SSL_DATA_TRANSFORM)
+def ssl_train(train_dir: str, val_dir: str, weights_dir: str, perms_path: str):
+    permset = torch.tensor(np.load(perms_path))
+    train_data = SSLFoodDataset(train_dir, SSL_DATA_TRANSFORM, permset)
     train_loader = DataLoader(train_data, batch_size=256, shuffle=True, num_workers=14, persistent_workers=True)
-    val_data = SSLFoodDataset(val_dir, SSL_DATA_TRANSFORM)
+    val_data = SSLFoodDataset(val_dir, SSL_DATA_TRANSFORM, permset)
     val_loader = DataLoader(val_data, batch_size=256, num_workers=14, persistent_workers=True)
     trainer = L.Trainer(devices='auto',
                         enable_progress_bar=True,
@@ -83,9 +85,9 @@ if __name__ == '__main__':
     args = build_arg_parser().parse_args()
     match args.type:
         case 'full':
-            ssl_train(args.train_dir, args.val_dir, args.weights_dir)
+            ssl_train(args.train_dir, args.val_dir, args.weights_dir, args.ssl_permutations)
             train(args.train_dir, args.val_dir, args.weights_dir, args.use_ssl_pretrained)
         case 'sup':
             train(args.train_dir, args.val_dir, args.weights_dir, args.use_ssl_pretrained)
         case 'selfsup':
-            ssl_train(args.train_dir, args.val_dir, args.weights_dir)
+            ssl_train(args.train_dir, args.val_dir, args.weights_dir, args.ssl_permutations)
