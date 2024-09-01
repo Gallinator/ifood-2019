@@ -264,7 +264,7 @@ def main():
     plot_labels_dist(val_dir)
 
     if args.generate_ssl:
-        create_ssl_perms(os.path.join(data_dir, 'ssl_permutations.npz'), args.ssl_perms, 9)
+        create_ssl_perms(os.path.join(data_dir, 'ssl_permutations'), args.ssl_perms, 9)
 
 
 if __name__ == '__main__':
