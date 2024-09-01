@@ -98,23 +98,19 @@ class FoodCNN(L.LightningModule):
     def training_step(self, batch, *args: Any, **kwargs: Any):
         img, label = batch
         y = self.forward(img)
-        loss = nn.functional.cross_entropy(y, label)
-        y_proba = nn.functional.softmax(y, dim=1)
-        acc = multiclass_accuracy(y_proba, label, num_classes=self.n_classes)
         loss = nn.functional.cross_entropy(y, label, label_smoothing=0.1)
+        acc = multiclass_accuracy(y, label, self.n_classes, average="micro")
         self.log("Training loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
-        self.log("Training accuracy", acc, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        self.log("Training accuracy", acc * 100, on_step=False, on_epoch=True, prog_bar=True, logger=True)
         return loss
 
     def validation_step(self, batch, *args: Any, **kwargs: Any):
         img, label = batch
         y = self.forward(img)
-        loss = nn.functional.cross_entropy(y, label)
-        y_proba = nn.functional.softmax(y, dim=1)
-        acc = multiclass_accuracy(y_proba, label, num_classes=self.n_classes)
         loss = nn.functional.cross_entropy(y, label, label_smoothing=0.1)
+        acc = multiclass_accuracy(y, label, self.n_classes, average="micro")
         self.log("Validation loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
-        self.log("Validation accuracy", acc, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        self.log("Validation accuracy", acc * 100, on_step=False, on_epoch=True, prog_bar=True, logger=True)
         return loss
 
     def predict_step(self, batch):
