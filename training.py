@@ -3,6 +3,7 @@ import os.path
 
 import numpy as np
 import torch
+from lightning.pytorch.callbacks import LearningRateMonitor
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.tree import DecisionTreeClassifier
 from torch.utils.data import DataLoader
@@ -51,8 +52,7 @@ def train(train_dir: str, val_dir: str, weights_dir: str, use_pretrained_conv_ne
                         limit_val_batches=0.5,
                         max_epochs=1,
                         enable_model_summary=False,
-                        callbacks=[ModuleSummaryCallback()])
-
+                        callbacks=[ModuleSummaryCallback(), LearningRateMonitor('epoch')])
     conv_net = None
     if use_pretrained_conv_net:
         conv_net = ConvNet(False)
@@ -75,7 +75,7 @@ def ssl_train(train_dir: str, val_dir: str, weights_dir: str, perms_path: str):
                         limit_val_batches=0.1,
                         max_epochs=1,
                         enable_model_summary=False,
-                        callbacks=[ModuleSummaryCallback()])
+                        callbacks=[ModuleSummaryCallback(), LearningRateMonitor('epoch')])
 
     model = FoodSSL(2, 3)
     trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=val_loader)
