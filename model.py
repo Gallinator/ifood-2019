@@ -87,8 +87,8 @@ class FoodCNN(L.LightningModule):
         self.conv_net = conv_net if conv_net else ConvNet()
         self.linear = nn.Sequential(
             nn.Dropout(0.2),
-            nn.Linear(1024, self.n_classes),
-            nn.ReLU()
+            nn.ReLU(),
+            nn.Linear(1024, self.n_classes)
         )
 
     def forward(self, x):
