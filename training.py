@@ -13,7 +13,7 @@ from food_dataset import FoodDataset, SSLFoodDataset
 import lightning as L
 
 from model import FoodCNN, FoodSSL, ConvNet, TraditionalFoodClassifier
-from transforms import SUP_TRAIN_TRANSFORM, SUP_VAL_TRANSFORM, SSL_DATA_TRANSFORM
+from transforms import SUP_TRAIN_TRANSFORM, SUP_VAL_TRANSFORM, SSL_DATA_TRANSFORM, MixCollate
 
 
 class ModuleSummaryCallback(L.Callback):
@@ -42,7 +42,13 @@ def build_arg_parser():
 
 def train(train_dir: str, val_dir: str, weights_dir: str, use_pretrained_conv_net: bool = False):
     train_data = FoodDataset(train_dir, transform=SUP_TRAIN_TRANSFORM)
-    train_loader = DataLoader(train_data, batch_size=256, shuffle=True, num_workers=14, persistent_workers=True)
+    train_loader = DataLoader(train_data,
+                              batch_size=128,
+                              num_workers=14,
+                              shuffle=True,
+                              persistent_workers=True,
+                              collate_fn=MixCollate(train_data.num_classes))
+
     val_data = FoodDataset(val_dir, transform=SUP_VAL_TRANSFORM)
     val_loader = DataLoader(val_data, batch_size=256, num_workers=14, persistent_workers=True)
     trainer = L.Trainer(devices='auto',
