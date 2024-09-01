@@ -46,16 +46,23 @@ SUP_TRAIN_TRANSFORM = v2.Compose([v2.Resize(256),
                                   v2.ToPureTensor()])
 SUP_VAL_TRANSFORM = v2.Compose([v2.Resize(256),
                                 v2.CenterCrop(224),
-                                v2.ToImage(),
-                                v2.ToDtype(torch.float32, scale=True),
-                                v2.Normalize(NORM_MEAN, NORM_STD)])
+                                v2.PILToTensor(),
+                                v2.ToDtype(torch.float, scale=True),
+                                v2.Normalize(NORM_MEAN, NORM_STD),
+                                v2.ToPureTensor()])
 
 SSL_PER_TILE_TRANSFORM = v2.Compose([v2.RandomCrop(64),
-                                     v2.Normalize(NORM_MEAN, NORM_STD)])
+                                     v2.ToDtype(torch.float, scale=True),
+                                     v2.Normalize(NORM_MEAN, NORM_STD),
+                                     v2.ToPureTensor()])
 
 SSL_DATA_TRANSFORM = v2.Compose([v2.Resize(256),
                                  v2.CenterCrop(225),
-                                 v2.ToTensor(),
+                                 v2.RandomHorizontalFlip(0.5),
+                                 v2.RandomChoice([
+                                     v2.ColorJitter(hue=0.4, saturation=0.4, brightness=0.4),
+                                     v2.RandomHorizontalFlip(0)]),
+                                 v2.PILToTensor(),
                                  JigSaw(3),
                                  MultiImageTransform(64, SSL_PER_TILE_TRANSFORM)])
 
