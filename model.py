@@ -126,8 +126,8 @@ class FoodCNN(L.LightningModule):
         return torch.argmax(y, dim=1), y
 
     def configure_optimizers(self):
-        opt = SGD(self.parameters(), lr=0.045, weight_decay=0.00004, momentum=0.9)
-        return {'optimizer': opt, 'lr_scheduler': StepLR(opt, 1, 0.98)}
+        opt = SGD(self.parameters(), lr=0.18, weight_decay=0.00004, momentum=0.9)
+        return {'optimizer': opt, 'lr_scheduler': StepLR(opt, 1, 0.985)}
 
 
 class FoodSSL(L.LightningModule):
