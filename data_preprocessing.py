@@ -6,11 +6,11 @@ import shutil
 import tarfile
 import random
 
+import cv2
 import numpy as np
 import pandas as pd
 import requests
 import tqdm
-from PIL import Image
 from scipy.spatial.distance import hamming
 from simple_file_checksum import get_checksum
 from sklearn.metrics import pairwise_distances
@@ -201,6 +201,28 @@ def plot_labels_dist(info_path: str):
     plot_counts(counts, classes)
 
 
+def augment(class_path: str, target_size: int):
+    imgs = os.listdir(class_path)
+    augment_count = target_size - len(imgs)
+    for _ in range(augment_count):
+        img_name = imgs[random.randint(0, len(imgs) - 1)]
+        img = cv2.imread(os.path.join(class_path, img_name))
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+
+        # Mask brown
+        mask = np.logical_or(img[:, :, 0] > 324 // 2, img[:, :, 0] < 30 // 2)
+        # Random range
+        h = random.randint(0, 180)
+        masked_img = img[:, :, 0][mask]
+
+        # Remap
+        h_min, h_max = np.min(masked_img), np.max(masked_img)
+        img[:, :, 0][mask] = ((masked_img - h_min) / (h_max - h_min) * 30 + h) % 181
+
+        img = cv2.cvtColor(img, cv2.COLOR_HSV2BGR)
+        cv2.imwrite(os.path.join(class_path, f'hs{h}' + img_name), img)
+
+
 def main():
     args = build_arg_parser().parse_args()
     download_dir = args.download_dir
@@ -235,6 +257,8 @@ def main():
         clean_data(os.path.join(data_dir, 'train_set'))
 
     create_val_set(data_dir, 1 - args.train_size)
+
+    augment(os.path.join(train_dir, 'marble_cake'), 100)
 
     plot_labels_dist(train_dir)
     plot_labels_dist(val_dir)
