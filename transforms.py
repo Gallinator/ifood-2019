@@ -1,5 +1,8 @@
+from typing import Callable
+
 import torch
 from torch import nn
+from torch.utils.data import default_collate
 from torchvision.transforms import v2
 
 
@@ -51,3 +54,14 @@ SSL_DATA_TRANSFORM = v2.Compose([v2.Resize(256),
                                  v2.ToTensor(),
                                  JigSaw(3),
                                  MultiImageTransform(64, SSL_PER_TILE_TRANSFORM)])
+
+
+class MixCollate(Callable):
+    def __init__(self, num_classes: int):
+        self.transform = v2.RandomChoice([v2.MixUp(num_classes=num_classes), v2.CutMix(num_classes=num_classes)])
+
+    def __call__(self, batch):
+        if torch.rand(1) > 0.5:
+            return self.transform(*default_collate(batch))
+        else:
+            return default_collate(batch)
