@@ -12,6 +12,10 @@ class FoodDataset(ImageFolder):
         super().__init__(root, transform=transform)
         self.idx_to_class = {v: k for k, v in self.class_to_idx.items()}
 
+    @property
+    def num_classes(self):
+        return len(self.classes)
+
 
 class SSLFoodDataset(ImageFolder):
     def __init__(self, root: str, transform, permset):
