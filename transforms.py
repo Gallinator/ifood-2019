@@ -35,11 +35,15 @@ NORM_STD = [0.229, 0.224, 0.225]
 
 SUP_TRAIN_TRANSFORM = v2.Compose([v2.Resize(256),
                                   v2.CenterCrop(224),
-                                  v2.RandomHorizontalFlip(),
-                                  v2.ColorJitter(),
-                                  v2.ToImage(),
-                                  v2.ToDtype(torch.float32, scale=True),
-                                  v2.Normalize(NORM_MEAN, NORM_STD)])
+                                  v2.RandomHorizontalFlip(0.5),
+                                  v2.RandomChoice([
+                                      v2.ColorJitter(hue=0.4, saturation=0.4, brightness=0.4),
+                                      v2.RandomRotation(20),
+                                      v2.RandomHorizontalFlip(0)]),
+                                  v2.PILToTensor(),
+                                  v2.ToDtype(torch.float, scale=True),
+                                  v2.Normalize(NORM_MEAN, NORM_STD),
+                                  v2.ToPureTensor()])
 SUP_VAL_TRANSFORM = v2.Compose([v2.Resize(256),
                                 v2.CenterCrop(224),
                                 v2.ToImage(),
