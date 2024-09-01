@@ -101,6 +101,7 @@ class FoodCNN(L.LightningModule):
         loss = nn.functional.cross_entropy(y, label)
         y_proba = nn.functional.softmax(y, dim=1)
         acc = multiclass_accuracy(y_proba, label, num_classes=self.n_classes)
+        loss = nn.functional.cross_entropy(y, label, label_smoothing=0.1)
         self.log("Training loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
         self.log("Training accuracy", acc, on_step=False, on_epoch=True, prog_bar=True, logger=True)
         return loss
@@ -111,6 +112,7 @@ class FoodCNN(L.LightningModule):
         loss = nn.functional.cross_entropy(y, label)
         y_proba = nn.functional.softmax(y, dim=1)
         acc = multiclass_accuracy(y_proba, label, num_classes=self.n_classes)
+        loss = nn.functional.cross_entropy(y, label, label_smoothing=0.1)
         self.log("Validation loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
         self.log("Validation accuracy", acc, on_step=False, on_epoch=True, prog_bar=True, logger=True)
         return loss
