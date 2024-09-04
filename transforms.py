@@ -59,9 +59,6 @@ SSL_PER_TILE_TRANSFORM = v2.Compose([v2.RandomCrop(64),
 SSL_DATA_TRANSFORM = v2.Compose([v2.Resize(256),
                                  v2.CenterCrop(225),
                                  v2.RandomHorizontalFlip(0.5),
-                                 v2.RandomChoice([
-                                     v2.ColorJitter(hue=0.4, saturation=0.4, brightness=0.4),
-                                     v2.RandomHorizontalFlip(0)]),
                                  v2.PILToTensor(),
                                  JigSaw(3),
                                  MultiImageTransform(64, SSL_PER_TILE_TRANSFORM)])
