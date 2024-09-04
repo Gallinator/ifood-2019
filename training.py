@@ -107,4 +107,4 @@ if __name__ == '__main__':
         case 'selfsup':
             ssl_train(args.train_dir, args.val_dir, args.weights_dir, args.ssl_permutations)
         case 'classifier':
-            train_classifier(args.weights_dir, args.val_dir, args.val_dir)
+            train_classifier(args.weights_dir, args.train_dir, args.val_dir)
