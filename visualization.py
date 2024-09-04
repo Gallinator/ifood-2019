@@ -4,7 +4,6 @@ import PIL.Image
 import matplotlib
 import numpy as np
 from matplotlib import pyplot as plt
-from sklearn.metrics import ConfusionMatrixDisplay
 
 
 def plot_image(image: PIL.Image.Image, label: str):
