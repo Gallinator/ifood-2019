@@ -76,7 +76,7 @@ def ssl_train(train_dir: str, val_dir: str, weights_dir: str, perms_path: str):
                         enable_model_summary=False,
                         callbacks=[ModuleSummaryCallback(), LearningRateMonitor('epoch')])
 
-    model = FoodSSL(2, 3)
+    model = FoodSSL(len(permset), 3)
     trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=val_loader)
     trainer.save_checkpoint(os.path.join(weights_dir, 'ssl_cnn.ckpt'))
     torch.save(model.conv_net.state_dict(), os.path.join(weights_dir, 'ssl_conv_net.pt'))
