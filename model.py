@@ -147,8 +147,8 @@ class FoodSSL(L.LightningModule):
         )
 
     def configure_optimizers(self):
-        opt = SGD(self.parameters(), lr=0.045, weight_decay=0.00004, momentum=0.9)
-        return {'optimizer': opt, 'lr_scheduler': StepLR(opt, 1, 0.98)}
+        opt = SGD(self.parameters(), lr=0.025, weight_decay=0.00004, momentum=0.9)
+        return {'optimizer': opt, 'lr_scheduler': StepLR(opt, 1, 0.995)}
 
     def forward(self, x):
         shared_outs = []
