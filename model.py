@@ -136,7 +136,6 @@ class FoodSSL(L.LightningModule):
         self.num_tiles = grid_size * grid_size
         self.conv_net = ConvNet(ssl_stride=True)
         self.shared = nn.Sequential(
-            self.conv_net,
             nn.Linear(1024, 64),
             nn.ReLU())
         self.linear = nn.Sequential(
@@ -154,7 +153,8 @@ class FoodSSL(L.LightningModule):
     def forward(self, x):
         shared_outs = []
         for t in x.tensor_split(self.num_tiles, dim=1):
-            shared_outs.append(self.shared(torch.squeeze(t)))
+            o = self.conv_net(torch.squeeze(t))
+            shared_outs.append(self.shared(o))
         y = torch.cat(shared_outs, dim=1)
         return self.linear(y)
 
