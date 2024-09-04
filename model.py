@@ -141,9 +141,7 @@ class FoodSSL(L.LightningModule):
         self.linear = nn.Sequential(
             nn.Linear(64 * grid_size ** 2, 256),
             nn.ReLU(),
-            nn.Linear(256, 64),
-            nn.ReLU(),
-            nn.Linear(64, num_perm)
+            nn.Linear(256, num_perm)
         )
 
     def configure_optimizers(self):
