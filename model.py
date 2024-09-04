@@ -4,6 +4,7 @@ from typing import Any
 import lightning as L
 import torch
 import tqdm
+from sklearn.ensemble import HistGradientBoostingClassifier
 from torch import nn, Tensor
 from torch.nn import Flatten
 from torch.optim import SGD
@@ -176,10 +177,14 @@ class FoodSSL(L.LightningModule):
 
 
 class TraditionalFoodClassifier:
-    def __init__(self, conv_net: ConvNet, device, repr_scaler, classifier):
+    def __init__(self, conv_net: ConvNet, device, repr_scaler, classifier=None):
         self.conv_net = conv_net
         self.conv_net.to(device)
-        self.classifier = classifier
+        self.classifier = classifier if classifier else HistGradientBoostingClassifier(
+            verbose=2,
+            learning_rate=0.02,
+            max_iter=100
+        )
         self.device = device
         self.repr_scaler = repr_scaler
 
@@ -219,6 +224,7 @@ class TraditionalFoodClassifier:
         representations, labels = self.extract_representations(dataset)
         self.repr_scaler = self.repr_scaler.fit(representations)
         representations = self.repr_scaler.transform(representations)
+        print('Training classifier...')
         self.classifier.fit(representations, labels)
         return self
 
