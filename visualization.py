@@ -27,7 +27,7 @@ def plot_counts(counts, classes):
 
 
 def plot_metrics(cmatrix, **scores):
-    fig, axs = plt.subplots(1, 2)
+    fig, axs = plt.subplots(1, 2, constrained_layout=True, figsize=(18, 9))
 
     scores, values = list(scores.keys()), list(scores.values())
     cmap = matplotlib.colormaps['tab10']
