@@ -72,10 +72,7 @@ def ssl_train(train_dir: str, val_dir: str, weights_dir: str, perms_path: str):
     val_loader = DataLoader(val_data, batch_size=256, num_workers=14, persistent_workers=True)
     trainer = L.Trainer(devices='auto',
                         enable_progress_bar=True,
-                        enable_checkpointing=False,
-                        limit_train_batches=0.1,
-                        limit_val_batches=0.1,
-                        max_epochs=1,
+                        max_epochs=100,
                         enable_model_summary=False,
                         callbacks=[ModuleSummaryCallback(), LearningRateMonitor('epoch')])
 
