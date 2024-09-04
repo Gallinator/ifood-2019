@@ -88,9 +88,7 @@ def train_classifier(weights_dir: str, train_dir: str, val_dir: str):
     train_data = FoodDataset(train_dir, transform=SUP_TRAIN_TRANSFORM)
     val_data = FoodDataset(val_dir, transform=SUP_VAL_TRANSFORM)
 
-    classifier = TraditionalFoodClassifier(conv_net, torch.device('cuda'),
-                                           MinMaxScaler(),
-                                           DecisionTreeClassifier(max_depth=1, max_features=10))
+    classifier = TraditionalFoodClassifier(conv_net, torch.device('cuda'), MinMaxScaler())
 
     classifier.fit(train_data)
     classifier.save(weights_dir)
