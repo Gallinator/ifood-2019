@@ -5,7 +5,6 @@ import numpy as np
 import torch
 from lightning.pytorch.callbacks import LearningRateMonitor
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.tree import DecisionTreeClassifier
 from torch.utils.data import DataLoader
 from torchinfo import torchinfo
 
