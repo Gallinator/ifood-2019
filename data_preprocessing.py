@@ -258,7 +258,9 @@ def main():
 
     create_val_set(data_dir, 1 - args.train_size)
 
-    augment(os.path.join(train_dir, 'marble_cake'), 100)
+    plot_labels_dist(train_dir)
+
+    augment(os.path.join(train_dir, 'marble_cake'), 200)
 
     plot_labels_dist(train_dir)
     plot_labels_dist(val_dir)
