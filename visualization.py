@@ -30,6 +30,7 @@ def plot_metrics(cmatrix, **scores):
     y = np.arange(len(scores))
     axs[0].barh(y, width=values)
     axs[0].set_yticks(y, scores)
+    axs[0].set_xlim(left=0.0, right=1.0)
 
     axs[1].imshow(cmatrix)
     axs[1].set_xlabel('Predicted')
