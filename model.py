@@ -218,6 +218,7 @@ class TraditionalFoodClassifier:
         self.conv_net.eval()
         representations, labels = self.extract_representations(dataset)
         self.repr_scaler = self.repr_scaler.fit(representations)
+        representations = self.repr_scaler.transform(representations)
         self.classifier.fit(representations, labels)
         return self
 
