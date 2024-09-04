@@ -1,4 +1,7 @@
+import random
+
 import PIL.Image
+import matplotlib
 import numpy as np
 from matplotlib import pyplot as plt
 from sklearn.metrics import ConfusionMatrixDisplay
@@ -27,6 +30,9 @@ def plot_metrics(cmatrix, **scores):
     fig, axs = plt.subplots(1, 2)
 
     scores, values = list(scores.keys()), list(scores.values())
+    cmap = matplotlib.colormaps['tab10']
+    rng = random.Random(8421)
+    colors = [cmap(rng.random()) for _ in scores]
     y = np.arange(len(scores))
     axs[0].barh(y, width=values)
     axs[0].set_yticks(y, scores)
