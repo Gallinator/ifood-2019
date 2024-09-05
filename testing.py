@@ -5,6 +5,7 @@ import torch
 from sklearn.metrics import top_k_accuracy_score, confusion_matrix, f1_score, recall_score, \
     precision_score
 from torch.utils.data import DataLoader
+from torchvision.datasets import ImageFolder
 
 from food_dataset import FoodDataset
 from model import FoodCNN, TraditionalFoodClassifier
@@ -24,10 +25,6 @@ def calc_metrics(pred, pred_proba, target):
     plot_metrics(cmatrix, Accuracy=acc1, Top3=acc3, F1Score=f1, Recall=recall, Precision=precision)
 
 
-def test_cnn(test_data: str, model_checkpoint: str):
-    data = FoodDataset(test_data, SUP_VAL_TRANSFORM)
-    model = FoodCNN.load_from_checkpoint(model_checkpoint)
-    loader = DataLoader(data, shuffle=False, num_workers=14, persistent_workers=True)
 def evaluate_torch_model(test_data: ImageFolder, model: L.LightningModule):
     loader = DataLoader(test_data, shuffle=False, num_workers=14, persistent_workers=True)
     trainer = L.Trainer()
