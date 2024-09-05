@@ -1,8 +1,7 @@
 import numpy as np
 import torch
-import torchinfo
-from sklearn.metrics import top_k_accuracy_score, roc_auc_score, confusion_matrix, f1_score, recall_score, \
-    average_precision_score
+from sklearn.metrics import top_k_accuracy_score, confusion_matrix, f1_score, recall_score, \
+    precision_score
 from torch.utils.data import DataLoader
 
 from food_dataset import FoodDataset
@@ -18,8 +17,9 @@ def calc_metrics(pred, pred_proba, target):
     acc3 = top_k_accuracy_score(target, pred_proba, k=3)
     cmatrix = confusion_matrix(target, pred)
     f1 = f1_score(target, pred, average='macro')
+    precision = precision_score(target, pred, average='macro')
     recall = recall_score(target, pred, average='macro')
-    plot_metrics(cmatrix, Accuracy=acc1, Top3=acc3, F1Score=f1, Recall=recall)
+    plot_metrics(cmatrix, Accuracy=acc1, Top3=acc3, F1Score=f1, Recall=recall, Precision=precision)
 
 
 def test_cnn(test_data: str, model_checkpoint: str):
