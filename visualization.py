@@ -1,9 +1,28 @@
+import math
 import random
 
 import PIL.Image
 import matplotlib
 import numpy as np
 from matplotlib import pyplot as plt
+from torch.nn import Conv2d
+from torchvision.utils import make_grid
+
+
+def plot_filters(conv2d_layer: Conv2d):
+    grid_size = math.ceil(math.sqrt(conv2d_layer.weight.shape[0]))
+    grid = make_grid(conv2d_layer.weight,
+                     nrow=grid_size,
+                     normalize=True,
+                     scale_each=True,
+                     padding=1,
+                     pad_value=1)
+    grid = grid.numpy(force=True)
+    plt.figure()
+    plt.imshow(grid.transpose((1, 2, 0)))
+    plt.xticks([])
+    plt.yticks([])
+    plt.show()
 
 
 def plot_image(image: PIL.Image.Image, label: str):
