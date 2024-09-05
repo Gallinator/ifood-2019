@@ -28,21 +28,21 @@ def test_cnn(test_data: str, model_checkpoint: str):
     data = FoodDataset(test_data, SUP_VAL_TRANSFORM)
     model = FoodCNN.load_from_checkpoint(model_checkpoint)
     loader = DataLoader(data, shuffle=False, num_workers=14, persistent_workers=True)
+def evaluate_torch_model(test_data: ImageFolder, model: L.LightningModule):
+    loader = DataLoader(test_data, shuffle=False, num_workers=14, persistent_workers=True)
     trainer = L.Trainer()
     pred = trainer.predict(model, loader)
     pred, pred_proba = list(zip(*pred))
     pred = np.array([p.numpy(force=True) for p in pred]).flatten()
     pred_proba = np.array([p.numpy(force=True)[0] for p in pred_proba])
-    targets = list(zip(*data.samples))[1]
+    targets = list(zip(*test_data.samples))[1]
     calc_metrics(pred, pred_proba, targets)
 
 
-def test_classifier(test_data: str, weights_dir: str):
-    data = FoodDataset(test_data, SUP_VAL_TRANSFORM)
+def test_classifier(test_data: ImageFolder, weights_dir: str):
     model = TraditionalFoodClassifier.load(weights_dir, torch.device('cuda'))
-
-    pred, pred_proba = model.predict(data)
-    targets = list(zip(*data.samples))[1]
+    pred, pred_proba = model.predict(test_data)
+    targets = list(zip(*test_data.samples))[1]
 
     calc_metrics(pred, pred_proba, targets)
 
@@ -56,3 +56,16 @@ def build_arg_parser():
     arg_parser.add_argument('--cnn-checkpoint', type=str, default='weights/cnn.ckpt',
                             help='path to the Pytorch Lightning model checkpoint')
     return arg_parser
+
+
+if __name__ == '__main__':
+    args = build_arg_parser().parse_args()
+
+    data = FoodDataset(args.data_dir, SUP_VAL_TRANSFORM)
+
+    if args.cnn_checkpoint:
+        model = FoodCNN.load_from_checkpoint(args.cnn_checkpoint)
+        evaluate_torch_model(data, model)
+
+    if args.classifier_dir:
+        test_classifier(data, args.classifier_dir)
