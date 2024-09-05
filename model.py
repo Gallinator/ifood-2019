@@ -14,6 +14,7 @@ from torchmetrics.functional.classification import multiclass_accuracy
 import skops.io as sio
 
 from food_dataset import FoodDataset
+from visualization import plot_boosting_losses
 
 
 class InvertedResidual(nn.Module):
@@ -226,6 +227,9 @@ class TraditionalFoodClassifier:
         representations = self.repr_scaler.transform(representations)
         print('Training classifier...')
         self.classifier.fit(representations, labels)
+
+        plot_boosting_losses(-self.classifier.train_score_,
+                             -self.classifier.validation_score_)
         return self
 
     def predict(self, img: Tensor | FoodDataset):
