@@ -16,12 +16,10 @@ from visualization import plot_metrics
 def calc_metrics(pred, pred_proba, target):
     acc1 = top_k_accuracy_score(target, pred_proba, k=1)
     acc3 = top_k_accuracy_score(target, pred_proba, k=3)
-    auc = roc_auc_score(target, pred_proba, multi_class='ovo')
     cmatrix = confusion_matrix(target, pred)
     f1 = f1_score(target, pred, average='macro')
     recall = recall_score(target, pred, average='macro')
-    m_ap = average_precision_score(target, pred_proba)
-    plot_metrics(cmatrix, Accuracy=acc1, Top3=acc3, AUC=auc, F1Score=f1, Recall=recall, MAP=m_ap)
+    plot_metrics(cmatrix, Accuracy=acc1, Top3=acc3, F1Score=f1, Recall=recall)
 
 
 def test_cnn(test_data: str, model_checkpoint: str):
