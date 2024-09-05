@@ -12,6 +12,7 @@ from food_dataset import FoodDataset, SSLFoodDataset
 import lightning as L
 
 from model import FoodCNN, FoodSSL, ConvNet, TraditionalFoodClassifier
+from testing import test_classifier
 from transforms import SUP_TRAIN_TRANSFORM, SUP_VAL_TRANSFORM, SSL_DATA_TRANSFORM, MixCollate
 
 
@@ -92,6 +93,8 @@ def train_classifier(weights_dir: str, train_dir: str, val_dir: str):
 
     classifier.fit(train_data)
     classifier.save(weights_dir)
+
+    test_classifier(val_data, weights_dir)
 
 
 if __name__ == '__main__':
