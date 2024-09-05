@@ -68,3 +68,12 @@ def plot_metrics(cmatrix, **scores):
     axs[1].set_title('Confusion Matrix')
     plt.tight_layout()
     plt.show()
+
+
+def plot_boosting_losses(train_scores, val_scores):
+    x = np.arange(len(train_scores))
+    plt.figure()
+    plt.plot(x, train_scores, label='Train')
+    plt.plot(x, val_scores, label='Validation')
+    plt.legend()
+    plt.show()
