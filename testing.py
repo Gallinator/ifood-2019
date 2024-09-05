@@ -1,3 +1,5 @@
+import argparse
+
 import numpy as np
 import torch
 from sklearn.metrics import top_k_accuracy_score, confusion_matrix, f1_score, recall_score, \
@@ -43,3 +45,14 @@ def test_classifier(test_data: str, weights_dir: str):
     targets = list(zip(*data.samples))[1]
 
     calc_metrics(pred, pred_proba, targets)
+
+
+def build_arg_parser():
+    arg_parser = argparse.ArgumentParser()
+    arg_parser.add_argument('--data-dir', type=str, default='data/test_set',
+                            help='directory containing the evaluation data')
+    arg_parser.add_argument('--classifier-dir', type=str, default='weights',
+                            help='directory containing the traditional classifier')
+    arg_parser.add_argument('--cnn-checkpoint', type=str, default='weights/cnn.ckpt',
+                            help='path to the Pytorch Lightning model checkpoint')
+    return arg_parser
