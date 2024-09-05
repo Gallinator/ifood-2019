@@ -52,7 +52,13 @@ def plot_metrics(cmatrix, **scores):
     rng = random.Random(8421)
     colors = [cmap(rng.random()) for _ in scores]
     y = np.arange(len(scores))
-    axs[0].barh(y, width=values)
+    bars = axs[0].barh(y, width=values, color=colors)
+
+    high_labels = [f'{v:.3f}' if v >= 0.3 else '' for v in values]
+    low_labels = [f'{v:.3f}' if v < 0.3 else '' for v in values]
+    axs[0].bar_label(bars, low_labels, padding=8, color='black')
+    axs[0].bar_label(bars, high_labels, padding=-48, color='white')
+
     axs[0].set_yticks(y, scores)
     axs[0].set_xlim(left=0.0, right=1.0)
 
