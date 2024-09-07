@@ -2,8 +2,10 @@ import os.path
 from typing import Any
 
 import lightning as L
+import numpy as np
 import torch
 import tqdm
+from sklearn.decomposition import PCA
 from sklearn.ensemble import HistGradientBoostingClassifier
 from torch import nn, Tensor
 from torch.nn import Flatten
@@ -14,7 +16,7 @@ from torchmetrics.functional.classification import multiclass_accuracy
 import skops.io as sio
 
 from food_dataset import FoodDataset
-from visualization import plot_boosting_losses
+from visualization import plot_boosting_losses, plot_pca_variance
 
 
 class InvertedResidual(nn.Module):
@@ -178,7 +180,7 @@ class FoodSSL(L.LightningModule):
 
 
 class TraditionalFoodClassifier:
-    def __init__(self, conv_net: ConvNet, device, repr_scaler, classifier=None):
+    def __init__(self, conv_net: ConvNet, device, repr_scaler, classifier=None, pca=None):
         self.conv_net = conv_net
         self.conv_net.to(device)
         self.classifier = classifier if classifier else HistGradientBoostingClassifier(
@@ -192,6 +194,8 @@ class TraditionalFoodClassifier:
         )
         self.device = device
         self.repr_scaler = repr_scaler
+        self.pca = pca if pca else PCA(n_components=7840, svd_solver='full', random_state=8421)
+        self.n_pca_comps = 728
 
     def extract_representations(self, dataset: FoodDataset):
         dataloader = DataLoader(dataset, batch_size=256, shuffle=False, num_workers=14, persistent_workers=True)
@@ -229,13 +233,21 @@ class TraditionalFoodClassifier:
         classifier = sio.load(classifier_path, sio.get_untrusted_types(file=classifier_path))
         scaler = sio.load(scaler_path, sio.get_untrusted_types(file=scaler_path))
 
-        return TraditionalFoodClassifier(conv_net, device, scaler, classifier)
+        return TraditionalFoodClassifier(conv_net, device, scaler, classifier, pca)
+
+    def fit_transform_pca(self, representations) -> np.ndarray:
+        print('PCA...')
+        self.pca.fit(representations)
+        plot_pca_variance(self.pca)
+        return self.pca.transform(representations)[:, :self.n_pca_comps]
 
     def fit(self, dataset: FoodDataset):
         self.conv_net.eval()
         representations, labels = self.extract_representations(dataset)
         self.repr_scaler = self.repr_scaler.fit(representations)
         representations = self.repr_scaler.transform(representations)
+        representations = self.fit_transform_pca(representations)
+
         print('Training classifier...')
         self.classifier.fit(representations, labels)
 
@@ -250,6 +262,8 @@ class TraditionalFoodClassifier:
             representation = self.conv_net(img.to(self.device))
         elif isinstance(img, FoodDataset):
             representation, _ = self.extract_representations(img)
+
         representation = self.repr_scaler.transform(representation)
+        representation = self.pca.transform(representation)[:, :self.n_pca_comps]
 
         return self.classifier.predict(representation), self.classifier.predict_proba(representation)
