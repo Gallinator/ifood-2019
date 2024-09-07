@@ -86,7 +86,7 @@ def ssl_train(train_dir: str, val_dir: str, weights_dir: str, perms_path: str):
 def train_classifier(weights_dir: str, train_dir: str, val_dir: str):
     conv_net = ConvNet()
     conv_net.load_state_dict(torch.load(os.path.join(weights_dir, 'ssl_conv_net.pt')))
-    train_data = FoodDataset(train_dir, transform=SUP_TRAIN_TRANSFORM)
+    train_data = FoodDataset(train_dir, transform=SUP_VAL_TRANSFORM)
     val_data = FoodDataset(val_dir, transform=SUP_VAL_TRANSFORM)
 
     classifier = TraditionalFoodClassifier(conv_net, torch.device('cuda'), MinMaxScaler())
