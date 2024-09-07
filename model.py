@@ -184,7 +184,11 @@ class TraditionalFoodClassifier:
         self.classifier = classifier if classifier else HistGradientBoostingClassifier(
             verbose=2,
             learning_rate=0.02,
-            max_iter=100
+            max_iter=100,
+            max_features=0.5,
+            early_stopping=True,
+            l2_regularization=0.1,
+            random_state=8421
         )
         self.device = device
         self.repr_scaler = repr_scaler
