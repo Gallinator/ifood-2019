@@ -221,17 +221,20 @@ class TraditionalFoodClassifier:
     def save(self, path: str):
         sio.dump(self.classifier, os.path.join(path, 'traditional_classifier.skops'))
         sio.dump(self.repr_scaler, os.path.join(path, 'repr_scaler.skops'))
+        sio.dump(self.pca, os.path.join(path, 'pca.skops'))
 
     @staticmethod
     def load(root: str, device: torch.device):
         classifier_path = os.path.join(root, 'traditional_classifier.skops')
         scaler_path = os.path.join(root, 'repr_scaler.skops')
+        pca_path = os.path.join(root, 'pca.skops')
 
         conv_net = ConvNet()
         conv_net.load_state_dict(torch.load(os.path.join(root, 'ssl_conv_net.pt')))
 
         classifier = sio.load(classifier_path, sio.get_untrusted_types(file=classifier_path))
         scaler = sio.load(scaler_path, sio.get_untrusted_types(file=scaler_path))
+        pca = sio.load(pca_path, sio.get_untrusted_types(file=pca_path))
 
         return TraditionalFoodClassifier(conv_net, device, scaler, classifier, pca)
 
