@@ -197,9 +197,16 @@ class TraditionalFoodClassifier:
         dataloader = DataLoader(dataset, batch_size=256, shuffle=False, num_workers=14, persistent_workers=True)
         representations = []
         labels = []
+
+        # Extract features from last inverted residual block
         for batch in tqdm.tqdm(dataloader, desc='Extracting data representation'):
             x, label = batch
-            y = self.conv_net(x.to(self.device))
+            y = x.to(self.device)
+            for i, l in enumerate(self.conv_net.layers):
+                y = l.forward(y)
+                if i == 8:
+                    break
+            y = torch.flatten(y, start_dim=1)
             y = y.to('cpu').detach()
             representations.append(y)
             labels.append(label)
