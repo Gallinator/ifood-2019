@@ -5,6 +5,7 @@ import PIL.Image
 import matplotlib
 import numpy as np
 from matplotlib import pyplot as plt
+from sklearn.decomposition import PCA
 from torch.nn import Conv2d
 from torchvision.utils import make_grid
 
@@ -76,4 +77,12 @@ def plot_boosting_losses(train_scores, val_scores):
     plt.plot(x, train_scores, label='Train')
     plt.plot(x, val_scores, label='Validation')
     plt.legend()
+    plt.show()
+
+
+def plot_pca_variance(pca: PCA):
+    vars = np.cumsum(pca.explained_variance_ratio_ * 100)
+    x = np.arange(len(vars))
+    plt.plot(x, vars)
+    plt.title('PCA cumulative variance')
     plt.show()
