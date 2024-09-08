@@ -11,6 +11,10 @@ from torchvision.utils import make_grid
 
 
 def plot_filters(conv2d_layer: Conv2d):
+    """
+    Plots the filters of the convolutional layer on a grid. Supports only layers with C=3
+    :param conv2d_layer: the layer to plt
+    """
     grid_size = math.ceil(math.sqrt(conv2d_layer.weight.shape[0]))
     grid = make_grid(conv2d_layer.weight,
                      nrow=grid_size,
@@ -27,6 +31,11 @@ def plot_filters(conv2d_layer: Conv2d):
 
 
 def plot_image(image: PIL.Image.Image, label: str):
+    """
+    Plots image with label,
+    :param image:
+    :param label:
+    """
     plt.imshow(image)
     plt.title(label.replace('_', ' ').capitalize(), fontsize='xx-large')
     plt.axis('off')
@@ -35,6 +44,11 @@ def plot_image(image: PIL.Image.Image, label: str):
 
 
 def plot_counts(counts, classes):
+    """
+    Plots the distribution of samples for each class
+    :param counts: the count of samples for each class
+    :param classes: the class names of each count
+    """
     idx = np.flip(np.argsort(counts))
     counts = np.array(counts)[idx]
     classes = np.array(classes)[idx]
@@ -46,6 +60,11 @@ def plot_counts(counts, classes):
 
 
 def plot_metrics(cmatrix, **scores):
+    """
+    Plots the evaluation metrics. The plot shows a bar plot for real valued metrics and a confusion matrix.
+    :param cmatrix: calculated confusion matrix
+    :param scores: the metric scores as kwargs with name=value
+    """
     fig, axs = plt.subplots(1, 2, constrained_layout=True, figsize=(18, 9))
 
     scores, values = list(scores.keys()), list(scores.values())
@@ -72,6 +91,11 @@ def plot_metrics(cmatrix, **scores):
 
 
 def plot_boosting_losses(train_scores, val_scores):
+    """
+    Plots the losses of gradient boosting vs iterations
+    :param train_scores: training losses
+    :param val_scores: validation losses
+    """
     x = np.arange(len(train_scores))
     plt.figure()
     plt.plot(x, train_scores, label='Train')
@@ -81,6 +105,10 @@ def plot_boosting_losses(train_scores, val_scores):
 
 
 def plot_pca_variance(pca: PCA):
+    """
+    Plots the cumulative variance of the pca for each component.
+    :param pca: the fitted pca
+    """
     vars = np.cumsum(pca.explained_variance_ratio_ * 100)
     x = np.arange(len(vars))
     plt.plot(x, vars)
