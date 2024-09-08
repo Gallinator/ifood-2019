@@ -18,12 +18,26 @@ class FoodDataset(ImageFolder):
 
 
 class SSLFoodDataset(ImageFolder):
+    """
+    Dataset for the self supervised classification task.
+    """
+
     def __init__(self, root: str, transform, permset):
+        """
+        :param root: data root folder
+        :param transform: the transform to apply to images
+        :param permset: the permutation set
+        """
         super().__init__(root, transform=transform)
         self.permset = permset
         self.perm_labels = random.choices(range(len(permset)), k=len(self))
 
     def shuffle_jigsaw(self, inpt):
+        """
+        Shuffles a set of tiles to create a jigsaw puzzle
+        :param inpt: tiles. Must have size (perm_size,c,w,h)
+        :return: a tuple with the shuffled puzzle and its label
+        """
         label = random.randint(0, len(self.permset) - 1)
         inpt = inpt[self.permset[label]]
         return inpt, label
