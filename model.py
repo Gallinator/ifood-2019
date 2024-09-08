@@ -162,7 +162,17 @@ class FoodCNN(L.LightningModule):
 
 
 class FoodSSL(L.LightningModule):
+    """
+    Base module for the self supervised learning task.
+    """
+
     def __init__(self, num_perm: int, grid_size: int, *args: Any, **kwargs: Any):
+        """
+        :param num_perm: the number jigsaw puzzle permutations
+        :param grid_size: the size of the jigsaw puzzle grid. The total number of tiles must be grid_size**2
+        :param args:
+        :param kwargs:
+        """
         super().__init__(*args, **kwargs)
         self.save_hyperparameters()
         self.num_perm = num_perm
