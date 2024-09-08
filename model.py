@@ -20,7 +20,20 @@ from visualization import plot_boosting_losses, plot_pca_variance
 
 
 class InvertedResidual(nn.Module):
+    """
+    Implementation of an inverted residual block. The residual is added only if in_channels==out_channels and stride==1.\n
+    The first pointwise convolution is skipped if no expand==1
+    """
+
     def __init__(self, in_channels, out_channels, expand: int, stride=1, *args, **kwargs):
+        """
+        :param in_channels: the number of input channels
+        :param out_channels: the number of output channels
+        :param expand: the expansion coefficient. The internal number of channel is calculated as in_channels*expand
+        :param stride: the stride
+        :param args:
+        :param kwargs:
+        """
         super().__init__(*args, **kwargs)
         self.use_residual = stride == 1 and in_channels == out_channels
         expand_channels = expand * in_channels
