@@ -17,6 +17,10 @@ from transforms import SUP_TRAIN_TRANSFORM, SUP_VAL_TRANSFORM, SSL_DATA_TRANSFOR
 
 
 class ModuleSummaryCallback(L.Callback):
+    """
+    Custom summary callback to print the model information.
+    """
+
     def on_fit_start(self, trainer: L.Trainer, pl_module: L.LightningModule) -> None:
         print('\n')
         torchinfo.summary(pl_module)
@@ -41,6 +45,13 @@ def build_arg_parser():
 
 
 def train(train_dir: str, val_dir: str, weights_dir: str, use_pretrained_conv_net: bool = False):
+    """
+    Trains the supervised task model
+    :param train_dir: train data
+    :param val_dir: validation data
+    :param weights_dir: folder to save the model into
+    :param use_pretrained_conv_net: if True the pretrained convolutional layers from self supervised learning are used for transfer learning. They are loaded from the weights directory
+    """
     train_data = FoodDataset(train_dir, transform=SUP_TRAIN_TRANSFORM)
     train_loader = DataLoader(train_data,
                               batch_size=128,
@@ -66,6 +77,13 @@ def train(train_dir: str, val_dir: str, weights_dir: str, use_pretrained_conv_ne
 
 
 def ssl_train(train_dir: str, val_dir: str, weights_dir: str, perms_path: str):
+    """
+    Trains the self supervised model
+    :param train_dir: train data
+    :param val_dir: validation data
+    :param weights_dir: folder to save the model into
+    :param perms_path: path to the precomputed permutation set
+    """
     permset = torch.tensor(np.load(perms_path))
     train_data = SSLFoodDataset(train_dir, SSL_DATA_TRANSFORM, permset)
     train_loader = DataLoader(train_data, batch_size=256, shuffle=True, num_workers=14, persistent_workers=True)
@@ -84,6 +102,12 @@ def ssl_train(train_dir: str, val_dir: str, weights_dir: str, perms_path: str):
 
 
 def train_classifier(weights_dir: str, train_dir: str, val_dir: str):
+    """
+    Trains the traditional classifier
+    :param weights_dir: folder to save the model into
+    :param train_dir: train data
+    :param val_dir: validation data
+    """
     conv_net = ConvNet()
     conv_net.load_state_dict(torch.load(os.path.join(weights_dir, 'ssl_conv_net.pt')))
     train_data = FoodDataset(train_dir, transform=SUP_VAL_TRANSFORM)
