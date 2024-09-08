@@ -16,6 +16,12 @@ from visualization import plot_metrics
 
 
 def calc_metrics(pred, pred_proba, target):
+    """
+    Calculates accuracy, top-3 accuracy, f1 score, recall, precision, confusion matrix and plots them
+    :param pred: the predicted labels of size (n_samples)
+    :param pred_proba: the predicted probabilities of size (n_samples,num_classes)
+    :param target: the true labels of size (n_samples)
+    """
     acc1 = top_k_accuracy_score(target, pred_proba, k=1)
     acc3 = top_k_accuracy_score(target, pred_proba, k=3)
     cmatrix = confusion_matrix(target, pred)
