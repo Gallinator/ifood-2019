@@ -333,7 +333,7 @@ class TraditionalFoodClassifier:
                              -self.classifier.validation_score_)
         return self
 
-    def predict(self, img: Tensor | FoodDataset):
+    def predict(self, img: Tensor | FoodDataset) -> tuple:
         """
         Performs prediction on new data.
         :param img: the input image, Can be a dataset or a tensor of shape (batch_size,3,224,224)
