@@ -7,6 +7,16 @@ from torchvision.transforms import v2
 
 
 class JigSaw(nn.Module):
+    """
+    Cuts an image into a grid to be used for the jigsaw puzzle creation.
+    The result is a tensor of size (grid_size**2,c,w,h). The tiles are flattened row by row:
+    >>> [[0,1,2],
+    >>>  [3,4,5],
+    >>>  [6,7,8]]
+    to
+    >>> [0,1,2,3,4,5,6,7,8]
+    """
+
     def __init__(self, grid_size: int, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.grid_size = grid_size
@@ -18,7 +28,17 @@ class JigSaw(nn.Module):
 
 
 class MultiImageTransform(nn.Module):
+    """
+    Applies a transformation to multiple images one by one independently.
+    """
+
     def __init__(self, final_size, transform, *args, **kwargs):
+        """
+        :param final_size: the expected final size of the image
+        :param transform: the transformation to apply
+        :param args:
+        :param kwargs:
+        """
         super().__init__(*args, **kwargs)
         self.transform = transform
         self.final_size = final_size
@@ -65,6 +85,11 @@ SSL_DATA_TRANSFORM = v2.Compose([v2.Resize(256),
 
 
 class MixCollate(Callable):
+    """
+    Applies a MixUp or CutMix transformation to a batch of data. There is 50% probability of not applying any transformation.\n
+    To be used as a collate function in the dataloader.
+    """
+
     def __init__(self, num_classes: int):
         self.transform = v2.RandomChoice([v2.MixUp(num_classes=num_classes), v2.CutMix(num_classes=num_classes)])
 
