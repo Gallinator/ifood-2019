@@ -61,6 +61,9 @@ class InvertedResidual(nn.Module):
 
 
 class InvertedBlock(nn.Module):
+    """
+    Implements a series of inverted residual blocks.
+    """
     def __init__(self, in_channels, out_channels, expand, stride=1, repeat=1, *args, **kwargs):
         super().__init__(*args, **kwargs)
         layers = [InvertedResidual(in_channels, out_channels, expand, stride)]
