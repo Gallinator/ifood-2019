@@ -105,7 +105,15 @@ class ConvNet(L.LightningModule):
 
 
 class FoodCNN(L.LightningModule):
+    """
+    Main module for the supervised task.
+    """
+
     def __init__(self, n_classes, conv_net: ConvNet | None = None):
+        """
+        :param n_classes: number of classes
+        :param conv_net: optional, if passsed the module will be used as convolutional layer block, otherwise a new one is created.
+        """
         super().__init__()
         self.save_hyperparameters()
         self.n_classes = n_classes
