@@ -64,6 +64,7 @@ class InvertedBlock(nn.Module):
     """
     Implements a series of inverted residual blocks.
     """
+
     def __init__(self, in_channels, out_channels, expand, stride=1, repeat=1, *args, **kwargs):
         super().__init__(*args, **kwargs)
         layers = [InvertedResidual(in_channels, out_channels, expand, stride)]
@@ -76,6 +77,10 @@ class InvertedBlock(nn.Module):
 
 
 class ConvNet(L.LightningModule):
+    """
+    Base module for the convolutional layers. This block csn be used for both supervised and self supervised learning tasks.
+    """
+
     def __init__(self, ssl_stride: bool = False, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
         self.save_hyperparameters()
