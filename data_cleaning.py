@@ -25,12 +25,22 @@ SWIN_TRANSFORMS = v2.Compose([v2.Resize(224),
                               v2.Normalize(NORM_MEAN, NORM_STD)])
 
 
-def get_embeddings_path(data_path: str):
+def get_embeddings_path(data_path: str) -> str:
+    """
+    Extract the embeddings file path from the data split name
+    :param data_path: data folder
+    :return: the embeddings file path
+    """
     root, split = os.path.split(data_path)
     return os.path.join(root, f'{split}_embeddings.csv')
 
 
 def get_embeddings(data_path: str) -> str:
+    """
+    Extract the embeddings using a pretrained Swin transformer and saves them to a csv.
+    :param data_path: path to the images to extract the embeddings of
+    :return: the path to the file containing the embeddings
+    """
     embeddings_path = get_embeddings_path(data_path)
     if os.path.exists(embeddings_path):
         print('Using existing embeddings...')
@@ -64,6 +74,12 @@ def get_embeddings(data_path: str) -> str:
 
 
 def find_anomalies(reprs_path: str, image_delete_path: str) -> list[str]:
+    """
+    Remove the anomalies from the data. This process is destructive as it deletes images. Also saves a file containing the deleted images.
+    :param reprs_path: path to the extracted embeddings
+    :param image_delete_path: csv path to save the list of deleted images
+    :return: a list with the paths of deleted images
+    """
     df = pd.read_csv(reprs_path, index_col=0)
     data = df.iloc[:, :1024].to_numpy()
 
@@ -94,6 +110,10 @@ def find_anomalies(reprs_path: str, image_delete_path: str) -> list[str]:
 
 
 def clean_data(data_dir: str):
+    """
+    Execute the data cleaning process
+    :param data_dir: data to clean
+    """
     embeddings_path = get_embeddings(data_dir)
     for img in find_anomalies(embeddings_path, 'data/deleted_images.csv'):
         os.remove(img)
