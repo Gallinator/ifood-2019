@@ -36,7 +36,7 @@ def build_arg_parser():
     arg_parser.add_argument('--weights-dir', type=str, default='weights',
                             help='directory to store the trained model weights into')
     arg_parser.add_argument('--type', type=str, default='sup',
-                            help='type of training. Supported values are (full, sup, selfsup)')
+                            help='type of training. Supported values are (full, sup, selfsup, classifier)')
     arg_parser.add_argument('--use-ssl-pretrained', action='store_true', default=False,
                             help='whether or not to use self supervised pretrained weights.Affects both sup and full training types')
     arg_parser.add_argument('--ssl-permutations', type=str, default='data/ssl_permutations.npy',
