@@ -219,7 +219,19 @@ class FoodSSL(L.LightningModule):
 
 
 class TraditionalFoodClassifier:
+    """
+    Traditional classifier model. It uses pretrained convolutional layers to extract the representation of the images, the trains a traditional classifier on them.\n
+    The input images must have a size of (33,224,224).
+    """
+
     def __init__(self, conv_net: ConvNet, device, repr_scaler, classifier=None, pca=None):
+        """
+        :param conv_net: the pretrained convolutional layers used to extract the representations
+        :param device: device to run the extraction process on
+        :param repr_scaler: scaler used to scale the extracted representations
+        :param classifier: optional traditional classifier. If not passed, a new one will be created.
+        :param pca: PCA used to perform dimensionality reduction. If not passed a new one will be created.
+        """
         self.conv_net = conv_net
         self.conv_net.to(device)
         self.classifier = classifier if classifier else HistGradientBoostingClassifier(
@@ -236,7 +248,12 @@ class TraditionalFoodClassifier:
         self.pca = pca if pca else PCA(n_components=7840, svd_solver='full', random_state=8421)
         self.n_pca_comps = 728
 
-    def extract_representations(self, dataset: FoodDataset):
+    def extract_representations(self, dataset: FoodDataset) -> tuple[np.ndarray, np.ndarray]:
+        """
+        Extracts the representations from the convolutional layers. In this case the features are extracted from the last inverted residual block.
+        :param dataset: the dataset to extract
+        :return: a tuple with labels and array of size (n_samples,n_features)
+        """
         dataloader = DataLoader(dataset, batch_size=256, shuffle=False, num_workers=14, persistent_workers=True)
         representations = []
         labels = []
@@ -258,12 +275,22 @@ class TraditionalFoodClassifier:
         return torch.cat(representations, dim=0).numpy(force=True), torch.cat(labels, dim=0).numpy(force=True)
 
     def save(self, path: str):
+        """
+        Saves the traditional classifier, pca and feature scaler. It uses skops.
+        :param path: path to save the files
+        """
         sio.dump(self.classifier, os.path.join(path, 'traditional_classifier.skops'))
         sio.dump(self.repr_scaler, os.path.join(path, 'repr_scaler.skops'))
         sio.dump(self.pca, os.path.join(path, 'pca.skops'))
 
     @staticmethod
     def load(root: str, device: torch.device):
+        """
+        Loads the whole classifier.
+        :param root: the root directory containing the convolutional layers, pca, scaler and traditional classifier
+        :param device: device to extract the features on
+        :return: the loaded classifier
+        """
         classifier_path = os.path.join(root, 'traditional_classifier.skops')
         scaler_path = os.path.join(root, 'repr_scaler.skops')
         pca_path = os.path.join(root, 'pca.skops')
@@ -278,12 +305,21 @@ class TraditionalFoodClassifier:
         return TraditionalFoodClassifier(conv_net, device, scaler, classifier, pca)
 
     def fit_transform_pca(self, representations) -> np.ndarray:
+        """
+        Fits the PCA and transforms the data.
+        :param representations: array of shape (n_samples,n_features)
+        :return: transformed features
+        """
         print('PCA...')
         self.pca.fit(representations)
         plot_pca_variance(self.pca)
         return self.pca.transform(representations)[:, :self.n_pca_comps]
 
     def fit(self, dataset: FoodDataset):
+        """
+        Trains the whole classifier.
+        :param dataset: the traning data
+        """
         self.conv_net.eval()
         representations, labels = self.extract_representations(dataset)
         self.repr_scaler = self.repr_scaler.fit(representations)
@@ -298,6 +334,11 @@ class TraditionalFoodClassifier:
         return self
 
     def predict(self, img: Tensor | FoodDataset):
+        """
+        Performs prediction on new data.
+        :param img: the input image, Can be a dataset or a tensor of shape (batch_size,3,224,224)
+        :return: tuple of label and predicted probability
+        """
         self.conv_net.eval()
         representation = None
         if isinstance(img, Tensor):
