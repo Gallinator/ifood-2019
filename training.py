@@ -73,7 +73,9 @@ def train(train_dir: str, val_dir: str, weights_dir: str, use_pretrained_conv_ne
         conv_net.load_state_dict(torch.load(os.path.join(weights_dir, 'ssl_conv_net.pt')))
     model = FoodCNN(train_data.num_classes, conv_net)
     trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=val_loader)
-    trainer.save_checkpoint(os.path.join(weights_dir, 'cnn.ckpt'))
+
+    ckpt_name = 'finetuned_cnn.ckpt' if use_pretrained_conv_net else 'cnn.ckpt'
+    trainer.save_checkpoint(os.path.join(weights_dir, ckpt_name))
 
 
 def ssl_train(train_dir: str, val_dir: str, weights_dir: str, perms_path: str):
