@@ -2,6 +2,7 @@ import argparse
 import csv
 import itertools
 import os
+import pathlib
 import shutil
 import tarfile
 import random
@@ -226,7 +227,9 @@ def augment(class_path: str, target_size: int):
 def main():
     args = build_arg_parser().parse_args()
     download_dir = args.download_dir
+    pathlib.Path(download_dir).mkdir(exist_ok=True)
     data_dir = args.data_dir
+    pathlib.Path(data_dir).mkdir(exist_ok=True)
     train_dir = os.path.join(data_dir, 'train_set')
     val_dir = os.path.join(data_dir, 'val_set')
     test_dir = os.path.join(data_dir, 'test_set')
