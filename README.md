@@ -8,6 +8,8 @@ The requirements were:
 - Use the self supervised learning pretrained model to extract features and train a traditional classifier with them
 - [BONUS] fine tune the self supervised model on the supervised task (implemented but not benchmarked)
 
+The repo contains weights for the supervised, self supervised and traditional classifier models.
+
 ## How to run
 It is assumed that cuda GPU is available in the system.
 Install the requirements (conda environment reccomended):
