@@ -104,7 +104,6 @@ class ConvNet(L.LightningModule):
         return self.layers(x)
 
 
-class FoodCNN(L.LightningModule):
 class BaseCNN(L.LightningModule):
     """
     Base CNN model. The training validation and prediction steps are the same across the CNN models
@@ -143,6 +142,7 @@ class BaseCNN(L.LightningModule):
         return torch.argmax(y, dim=1), y
 
 
+class FoodCNN(BaseCNN):
     """
     Main module for the supervised task.
     """
@@ -152,54 +152,26 @@ class BaseCNN(L.LightningModule):
         :param n_classes: number of classes
         :param conv_net: optional, if passsed the module will be used as convolutional layer block, otherwise a new one is created.
         """
-        super().__init__()
+        super().__init__(n_classes=n_classes)
         self.save_hyperparameters()
-        self.n_classes = n_classes
         self.conv_net = conv_net if conv_net else ConvNet()
         self.linear = nn.Sequential(
             nn.Dropout(0.2),
             nn.ReLU(),
             nn.Linear(1024, self.n_classes)
         )
+        self.loss = nn.CrossEntropyLoss(label_smoothing=0.1)
 
     def forward(self, x):
         y = self.conv_net(x)
         return self.linear(y)
-
-    def training_step(self, batch, *args: Any, **kwargs: Any):
-        img, label = batch
-        y = self.forward(img)
-        loss = nn.functional.cross_entropy(y, label, label_smoothing=0.1)
-        acc = multiclass_accuracy(y, label, self.n_classes, average="micro")
-        self.log("Training loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
-        self.log("Training accuracy", acc * 100, on_step=False, on_epoch=True, prog_bar=True, logger=True)
-        return loss
-
-    def validation_step(self, batch, *args: Any, **kwargs: Any):
-        img, label = batch
-        y = self.forward(img)
-        loss = nn.functional.cross_entropy(y, label, label_smoothing=0.1)
-        acc = multiclass_accuracy(y, label, self.n_classes, average="micro")
-        self.log("Validation loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
-        self.log("Validation accuracy", acc * 100, on_step=False, on_epoch=True, prog_bar=True, logger=True)
-        return loss
-
-    def predict_step(self, batch):
-        """
-        :param batch: input of size (batch_size,c,w,h)
-        :return: a tuple containing the predicted classes and predicted probabilities
-        """
-        x, _ = batch
-        y = self.forward(x)
-        y = nn.functional.softmax(y, dim=1)
-        return torch.argmax(y, dim=1), y
 
     def configure_optimizers(self):
         opt = SGD(self.parameters(), lr=0.18, weight_decay=0.00004, momentum=0.9)
         return {'optimizer': opt, 'lr_scheduler': StepLR(opt, 1, 0.985)}
 
 
-class FoodSSL(L.LightningModule):
+class FoodSSL(BaseCNN):
     """
     Base module for the self supervised learning task.
     """
@@ -211,9 +183,8 @@ class FoodSSL(L.LightningModule):
         :param args:
         :param kwargs:
         """
-        super().__init__(*args, **kwargs)
+        super().__init__(n_classes=num_perm, *args, **kwargs)
         self.save_hyperparameters()
-        self.num_perm = num_perm
         self.num_tiles = grid_size * grid_size
         self.conv_net = ConvNet(ssl_stride=True)
         self.shared = nn.Sequential(
@@ -224,6 +195,7 @@ class FoodSSL(L.LightningModule):
             nn.ReLU(),
             nn.Linear(256, num_perm)
         )
+        self.loss = nn.CrossEntropyLoss()
 
     def configure_optimizers(self):
         opt = SGD(self.parameters(), lr=0.025, weight_decay=0.00004, momentum=0.9)
@@ -236,24 +208,6 @@ class FoodSSL(L.LightningModule):
             shared_outs.append(self.shared(o))
         y = torch.cat(shared_outs, dim=1)
         return self.linear(y)
-
-    def training_step(self, batch, *args: Any, **kwargs: Any):
-        tiles, labels = batch
-        y = self.forward(tiles)
-        loss = nn.functional.cross_entropy(y, labels)
-        acc = multiclass_accuracy(y, labels, self.num_perm, average="micro")
-        self.log("Training loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
-        self.log("Training accuracy", acc * 100, on_step=False, on_epoch=True, prog_bar=True, logger=True)
-        return loss
-
-    def validation_step(self, batch, *args: Any, **kwargs: Any):
-        img, label = batch
-        y = self.forward(img)
-        loss = nn.functional.cross_entropy(y, label)
-        acc = multiclass_accuracy(y, label, self.num_perm, average="micro")
-        self.log("Validation loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
-        self.log("Validation accuracy", acc * 100, on_step=False, on_epoch=True, prog_bar=True, logger=True)
-        return loss
 
 
 class TraditionalFoodClassifier:
