@@ -105,6 +105,44 @@ class ConvNet(L.LightningModule):
 
 
 class FoodCNN(L.LightningModule):
+class BaseCNN(L.LightningModule):
+    """
+    Base CNN model. The training validation and prediction steps are the same across the CNN models
+    """
+
+    def __init__(self, n_classes, *args: Any, **kwargs: Any):
+        super().__init__(*args, **kwargs)
+        self.n_classes = n_classes
+
+    def training_step(self, batch, *args: Any, **kwargs: Any):
+        x, label = batch
+        y = self.forward(x)
+        loss = self.loss(y, label)
+        acc = multiclass_accuracy(y, label, self.n_classes, average="micro")
+        self.log("Training loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        self.log("Training accuracy", acc * 100, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        return loss
+
+    def validation_step(self, batch, *args: Any, **kwargs: Any):
+        x, label = batch
+        y = self.forward(x)
+        loss = self.loss(y, label)
+        acc = multiclass_accuracy(y, label, self.n_classes, average="micro")
+        self.log("Validation loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        self.log("Validation accuracy", acc * 100, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        return loss
+
+    def predict_step(self, batch, *args: Any, **kwargs: Any):
+        """
+                :param batch: input of size (batch_size,c,w,h)
+                :return: a tuple containing the predicted classes and predicted probabilities
+                """
+        x, _ = batch
+        y = self.forward(x)
+        y = nn.functional.softmax(y, dim=1)
+        return torch.argmax(y, dim=1), y
+
+
     """
     Main module for the supervised task.
     """
