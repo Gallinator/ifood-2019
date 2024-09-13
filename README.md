@@ -6,7 +6,7 @@ The requirements were:
 - Implement supervised learning task with CNN
 - Implement self supervised lerarning task
 - Use the self supervised learning pretrained model to extract features and train a traditional classifier with them
-- [BONUS] fine tune the self supervised model on the supervised task (untested but implemented)
+- [BONUS] fine tune the self supervised model on the supervised task (implemented but not benchmarked)
 
 ## How to run
 It is assumed that cuda GPU is available in the system.
@@ -52,6 +52,11 @@ To train other types of models, see the following options:
   --use-ssl-pretrained  whether or not to use self supervised pretrained weights.Affects both sup and full training types
   --ssl-permutations SSL_PERMUTATIONS
                         path to the file containing the jigsaw permutations
+```
+
+To see the training plots in real time run TensorBoard:
+```
+tensorboard --logdir 'PATH/TO/PROJECT/FOLDER/lightning_logs'
 ```
 
 ### Evaluation
